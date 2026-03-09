@@ -1,0 +1,14 @@
+\section{Six Birds Recap and Problem Setup}\label{sec:setup}
+
+Six Birds treats higher-level description not as a free summary of a substrate, but as a maintained closure. The full framework organizes this closure by six primitives: P1 operator rewrite, P2 constraints, P3 protocol holonomy / route mismatch, P4 staging, P5 packaging, and P6 accounting \citep{tsiokos2026sixbirds}. In the present paper, the main roles are played by P5, P4, and P6. Packaging chooses which distinctions become objects at the layer. Staging chooses the scale and timescale at which those objects are expected to persist. Accounting records the fact that keeping those objects predictive requires memory, sensing, or computational expenditure.
+
+We work throughout in a finite-state setting, which is already rich enough to capture the closure problem studied here and matches the controlled experiments later in the paper. The substrate is a stationary process $X_t$ on a microstate space $\mathcal{X}$. When we need explicit dynamics, we take $X_t$ to be a Markov chain with transition kernel $P$ and stationary distribution $\pi$. A layer is specified by a packaging map $\Pi : \mathcal{X} \to \mathcal{Y}$ together with a staging parameter $\tau \in \{1,2,\dots\}$. The packaged variable is
+\begin{equation}
+Y_t := \Pi(X_t).
+\label{eq:packaged-process}
+\end{equation}
+All information-theoretic quantities in this paper are computed under the stationary joint law of $(X_t,Y_t,Y_{t+\tau})$, and all logarithms are natural, so entropies are measured in nats.
+
+The predictive question is then immediate. If two microstates $x,x' \in \mathcal{X}$ share the same current package $\Pi(x)=\Pi(x')$, do they induce the same distribution of future packaged outcomes at scale $\tau$? If they do, then the current package is already sufficient for the next packaged step. If they do not, then the current macro-object hides a micro-index that still matters for prediction. The present paper identifies that hidden predictive residue with randomness at the layer.
+
+This finite-state specialization aligns directly with the operational coarse-graining pipeline used in earlier Six Birds work \citep{tsiokos2026pica}. It also makes the later budgeted analysis precise. Once $\Pi$ and $\tau$ are fixed, one may either keep the full microstate $X_t$, keep only the packaged state $Y_t$, or pay for intermediate side information through richer predictors. \Cref{sec:closure} first isolates the exact information lost in going from $X_t$ to $Y_t$; \Cref{sec:diagnostics} will then show how that loss is approximated in practice by route mismatch and limited-memory predictive gaps.

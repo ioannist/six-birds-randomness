@@ -1,0 +1,42 @@
+\subsection{Budgeted Prediction}\label{sec:results-budget}
+
+The controlled Markov benchmark established what unresolved closure is. The complementary question is what it costs to buy the missing distinctions back once the current package has already failed to stabilize them. To expose that accounting side directly, we fix the strongest hidden-type benchmark and measure the budgeted randomness curve $\mathsf{Rand}_B$ empirically using packaged predictors of increasing memory order.
+
+The empirical curve is reported in the feasible-class sense of \eqref{eq:budgeted-rand}: at budget $B=L$, we plot the best held-out log loss available among predictors of order at most $L$. This matters because sparse higher-order contexts can make the raw loss of a particular order-$L$ fit fluctuate upward in finite data, whereas the feasible-class quantity itself should never worsen when the admissible predictor class strictly expands.
+
+In the frozen run, the order-$0$ baseline is $1.09565$ nats. Allowing one packaged step of memory lowers the held-out loss to $1.04394$, a gain of $5.17\times 10^{-2}$ nats. Allowing two packaged steps lowers it again to $1.03855$, buying back an additional $5.38\times 10^{-3}$ nats. Beyond that point the feasible-class curve saturates through orders $3$, $4$, and $5$, indicating that the hidden predictive residue visible to this sequence has been exhausted at the present sample size. The exact packaged first-order benchmark for the same process is $H(Y_{t+1}\mid Y_t)=1.04953$, so the order-$1$ held-out estimate sits within $5.60\times 10^{-3}$ nats of the theoretical line, while the best order-$\le 2$ predictor improves on that baseline by $1.10\times 10^{-2}$ nats. \Cref{fig:budget-curve} shows the resulting randomness--budget curve.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.85\linewidth]{budget_curve_vs_theory}
+\caption{Held-out predictive log loss versus packaged memory order in the hidden-type benchmark. The horizontal line marks the exact packaged first-order uncertainty $H(Y_{t+1}\mid Y_t)$. The reported curve is the feasible-class envelope up to order $L$, so saturation indicates that additional packaged memory no longer buys back detectable predictive distinctions at this sample size.}
+\label{fig:budget-curve}
+\end{figure}
+
+The point of this experiment is not that higher order is always better. The point is that randomness can be priced. Extra memory lowers predictive loss exactly when the current package has failed to absorb distinctions that still matter for its future. In Six Birds language, this is the P6 side of the story: what looks like chance at one budget becomes predictable at another because the layer has paid to carry more of its unresolved closure forward.
+
+\subsection{Hashing as Packaging and One-Wayness}\label{sec:results-hashing}
+
+Hashing provides an engineered version of the same logic in a deterministic many-to-one map. A truncated digest $H_n : \{0,1\}^m \to \{0,1\}^n$ does not create new entropy; it packages a large input space into a short stable record and leaves preimage identification to whatever budget the observer can afford \citep{rogaway2004cryptographichashfunctionbasics}. We therefore examine three input regimes on small safe truncations: a uniform high-entropy source, a low-entropy synthetic dictionary of size $256$, and a fifty-fifty medium mixture of dictionary and out-of-dictionary inputs.
+
+In the uniform regime, the familiar one-wayness heuristic appears exactly where it should: in the small-success region $q/2^n \le 0.25$, empirical inversion success tracks the line $q/2^n$ with mean absolute deviation $3.70\times 10^{-3}$. \Cref{fig:hashing-inversion} plots empirical success against $q/2^n$ directly. For example, at $n=16$ and budget $q=256$, the empirical success rate is $6.67\times 10^{-3}$ against the simple baseline $256/2^{16}=3.91\times 10^{-3}$. In this regime, the digest is effectively random-looking relative to the bounded inversion budget, even though the map is fully deterministic.
+
+That behavior collapses once the input distribution is small. At the same truncation $n=16$ and the same budget $q=256$, low-entropy dictionary inputs invert with probability $1.00$, while the medium mixture already reaches $0.463$. The difference is not in the hash function but in how much preimage uncertainty the input source actually contains. Hashing does not manufacture entropy; it can only hide distinctions that were present to begin with.
+
+Simple random-lookingness tests tell the same story. Using $3000$ sampled digests and $16$-bit truncation for the collision audit, the uniform regime has collision ratio $0.816$ relative to the ideal random-output expectation and is not grossly flagged by simple byte- or bit-level tests. The medium mixture and low-entropy regimes, by contrast, jump to collision ratios $66.24$ and $255.30$, with distinct-value fractions $0.569$ and $0.0853$, respectively. \Cref{fig:hashing-collision} shows the collision-ratio separation on a log scale. A bounded observer therefore distinguishes these regimes without sophisticated cryptanalysis: high-entropy inputs look random enough, low-entropy inputs do not, and medium mixtures fall in between.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.85\linewidth]{hashing_inversion_vs_q_over_2n}
+\caption{Uniform-input inversion success in the low-success regime plotted against the baseline $q/2^n$. Across truncation levels, empirical success remains close to the diagonal, matching the expected feasibility-limited scaling of one-way search.}
+\label{fig:hashing-inversion}
+\end{figure}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.85\linewidth]{hashing_collision_ratio_by_distribution}
+\caption{Collision-ratio separation for $16$-bit truncated digests under three input regimes. The vertical axis is logarithmic. High-entropy uniform inputs remain near the ideal random-output expectation, while medium-mixture and low-entropy inputs become trivially distinguishable.}
+\label{fig:hashing-collision}
+\end{figure}
+
+The hashing experiment is deliberately toy-sized, but its conceptual role is exact. One-wayness and random-lookingness do not require a primitive source of randomness. They arise when a deterministic packaging map is observed through a bounded budget and supplied with enough input entropy to make unpaid distinctions expensive to reconstruct. This is the same closure-and-accounting mechanism seen earlier in coarse-grained dynamics, now displayed in an engineered many-to-one map.

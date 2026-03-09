@@ -1,0 +1,112 @@
+{
+  "budget_curves_run_dir": "results/budget_curves/20260306_124950_4f2581fd",
+  "frozen_artifacts": {
+    "figures": [
+      "artifacts/final/figs/budget_curve_hidden_types.png",
+      "artifacts/final/figs/hashing_byte_chi2_z_by_dist.png",
+      "artifacts/final/figs/hashing_collision_ratio_by_dist_n16.png",
+      "artifacts/final/figs/hashing_success_vs_budget_by_dist_n16.png",
+      "artifacts/final/figs/hashing_uniform_success_vs_budget.png",
+      "artifacts/final/figs/markov_cd_vs_heterogeneity_by_tau.png",
+      "artifacts/final/figs/markov_entropy_decomposition_stacked.png",
+      "artifacts/final/figs/markov_rm_vs_cd_scatter.png",
+      "artifacts/final/figs/rep_cd_vs_k.png",
+      "artifacts/final/figs/rep_nll_vs_k.png"
+    ],
+    "logs": [
+      "artifacts/final/logs/reproduce_all_stdout.txt"
+    ],
+    "tables": [
+      "artifacts/final/tables/budget_metrics.csv",
+      "artifacts/final/tables/budget_summary.json",
+      "artifacts/final/tables/hashing_metrics.csv",
+      "artifacts/final/tables/hashing_randomness_tests.csv",
+      "artifacts/final/tables/hashing_summary.json",
+      "artifacts/final/tables/markov_metrics.csv",
+      "artifacts/final/tables/markov_summary.json",
+      "artifacts/final/tables/rep_clustering_metrics.csv",
+      "artifacts/final/tables/rep_clustering_summary.json"
+    ]
+  },
+  "hashing_toy_run_dir": "results/hashing_toy/20260306_124951_437c68e1",
+  "headline_metrics": {
+    "budget": {
+      "hyy_theory": 1.0495346570757442,
+      "monotone_nonincreasing": true,
+      "nll_by_order": [
+        {
+          "nll": 1.0956531499870579,
+          "order": 0
+        },
+        {
+          "nll": 1.0439373463965227,
+          "order": 1
+        },
+        {
+          "nll": 1.038552865956148,
+          "order": 2
+        },
+        {
+          "nll": 1.038552865956148,
+          "order": 3
+        },
+        {
+          "nll": 1.038552865956148,
+          "order": 4
+        },
+        {
+          "nll": 1.038552865956148,
+          "order": 5
+        }
+      ]
+    },
+    "hashing": {
+      "low_entropy_detected": true,
+      "low_entropy_success_at_q_eq_dictsize": 1.0,
+      "medium_success_at_q_eq_dictsize": 0.4633333333333333,
+      "uniform_mean_abs_error_to_q_over_2n": 0.003696635275176077,
+      "uniform_not_grossly_flagged": true
+    },
+    "markov": {
+      "cd_max": 0.04815847564477198,
+      "max_abs_resid": 2.8687989483966447e-16,
+      "rm_cd_corr_all": 0.9594935458822499,
+      "rm_uniform_max": 0.275729171224746
+    },
+    "rep_clustering": {
+      "cd_emp_first": 0.07818005151859264,
+      "cd_emp_is_raw": true,
+      "cd_emp_last": 0.15787252725734957,
+      "k_values": [
+        2,
+        4,
+        8
+      ],
+      "nll1_first": 0.6262101074067442,
+      "nll1_last": 2.0046817349359616
+    }
+  },
+  "lean": {
+    "lean_artifact_paths": [
+      "lean/RandomnessLedgerLean/KLBridge.lean",
+      "lean/Smoke.lean"
+    ],
+    "lean_build_ok": true
+  },
+  "markov_bench_run_dir": "results/markov_bench/20260306_124948_66caaea9",
+  "rep_packaging_clustering_run_dir": "results/rep_packaging_clustering/20260306_124952_dc03e0a1",
+  "rep_packaging_run_dir": "results/rep_packaging/20260306_124952_a564f51d",
+  "scope": {
+    "auxiliary_evidence": [
+      "rep_packaging_clustering"
+    ],
+    "core_evidence": [
+      "markov_bench",
+      "budget_curves",
+      "hashing_toy"
+    ],
+    "excluded_exploratory": {
+      "rep_packaging_nn": "exploratory only; prior run showed code collapse (used_codes < k), excluded from frozen core evidence"
+    }
+  }
+}

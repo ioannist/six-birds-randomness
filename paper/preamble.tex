@@ -1,0 +1,78 @@
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage[margin=1in]{geometry}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{titling}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{ragged2e}
+\usepackage{tabularx}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{xurl}
+
+\usepackage[sort&compress]{natbib}
+\usepackage[hidelinks,pdfusetitle]{hyperref}
+\usepackage{orcidlink}
+\usepackage[nameinlink,noabbrev]{cleveref}
+
+\frenchspacing
+
+\graphicspath{{figures/raw/}{figures/generated/}}
+
+\setlength{\droptitle}{-3.5em}
+\pretitle{\begin{center}\LARGE\bfseries}
+\posttitle{\par\end{center}\vskip 0.4em}
+\preauthor{\begin{center}\large}
+\postauthor{\end{center}\vskip 1.0em}
+\predate{\begin{center}\small}
+\postdate{\par\end{center}\vskip -0.8em}
+\setlength{\parindent}{1.25em}
+\setlength{\emergencystretch}{2em}
+\setlength{\textfloatsep}{12pt plus 3pt minus 3pt}
+\setlength{\floatsep}{10pt plus 2pt minus 2pt}
+\setlength{\intextsep}{10pt plus 2pt minus 2pt}
+\captionsetup{justification=justified,singlelinecheck=false}
+\captionsetup[table]{position=top}
+\urlstyle{same}
+
+\raggedbottom
+
+\widowpenalty=10000
+\clubpenalty=10000
+\displaywidowpenalty=10000
+\interfootnotelinepenalty=10000
+\predisplaypenalty=10000
+
+\setcounter{topnumber}{3}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.75}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.8}
+\renewcommand{\dbltopfraction}{0.9}
+
+\fancypagestyle{firstpage}{%
+  \fancyhf{}
+  \fancyfoot[C]{\scriptsize Automorph Inc., Wilmington, DE, USA \quad \texttt{ioannis@automorph.io} \quad DOI: 10.5281/zenodo.18926433 \quad \textcopyright\ 2026 \quad CC-BY 4.0 \quad Preprint --- not peer reviewed.}
+  \renewcommand{\headrulewidth}{0pt}
+  \renewcommand{\footrulewidth}{0pt}
+}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+
+\numberwithin{equation}{section}

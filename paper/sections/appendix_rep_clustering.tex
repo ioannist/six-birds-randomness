@@ -1,0 +1,29 @@
+\section{Auxiliary Clustering Result}\label{app:aux-rep}
+
+This appendix records the representation-learning result that we treat as auxiliary rather than core evidence \citep{tishby1999bottleneck,geiger2015optimalkullbackleibleraggregation}. The experiment asks whether increasing representational budget, measured by the number of learned clusters $k$, automatically reduces predictive non-closure when packaging is learned from observations rather than supplied by construction. It does not.
+
+We generate observation sequences from the hidden-type process used earlier and learn $k$-means partitions on those observations for $k \in \{2,4,8\}$ \citep{macqueen1967somemethods}. For each learned packaging we then evaluate the resulting packaged sequence by held-out first- and second-order predictive log loss and by the empirical conditional mutual information
+\[
+\widehat I(X_t;Y_{t+1}\mid Y_t),
+\]
+computed from the joint sequence of hidden microstates and learned packaged labels. In this appendix we report the \emph{raw} empirical conditional mutual information, not the normalized version used only for diagnostics during development.
+
+The resulting trend is a useful caution. As $k$ increases from $2$ to $8$, the empirical closure deficit rises from $0.0782$ to $0.1356$ and then to $0.1579$ rather than falling. Held-out first-order predictive loss rises in the same direction, from $0.626$ to $1.307$ and then to $2.005$. Second-order predictive loss likewise worsens, from $0.628$ to $1.318$ and then to $2.837$. \Cref{fig:appendix-rep-cd,fig:appendix-rep-nll} summarize the pattern.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.85\linewidth]{appendix_rep_cd_vs_k}
+\caption{Auxiliary clustering result: raw empirical closure deficit versus learned cluster count $k$. Increasing representational granularity does not reduce non-closure in this run; it increases it.}
+\label{fig:appendix-rep-cd}
+\end{figure}
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.85\linewidth]{appendix_rep_nll_vs_k}
+\caption{Auxiliary clustering result: held-out packaged predictive loss versus learned cluster count $k$. Both first- and second-order losses worsen as the learned partition becomes more finely split.}
+\label{fig:appendix-rep-nll}
+\end{figure}
+
+The lesson is not that the closure-deficit account fails outside controlled partitions. The lesson is that more representational bins are not automatically the same thing as better packaging. A learned partition only helps if it closes distinctions that matter for the staged dynamics. If the partition instead slices the observations in a way that is misaligned with the predictive structure, additional representational budget can make the packaged process harder rather than easier to predict. This is why the result is auxiliary: it is informative about misaligned packaging, but it is not needed for the paper's main evidentiary arc.
+
+For the same reason, we do not use the exploratory neural bottleneck runs as evidence. In those runs the learned code usage collapsed below the nominal category count, so they do not provide a clean same-budget comparison to the clustering baseline. The controlled Markov, budgeted-prediction, and hashing demonstrations are therefore the proper basis of the main claims.

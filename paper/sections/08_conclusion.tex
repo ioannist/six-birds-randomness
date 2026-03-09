@@ -1,0 +1,15 @@
+\section{Conclusion}\label{sec:conclusion}
+
+We have argued that a layer looks random exactly to the extent that its current packaged state has failed to become a sufficient statistic for its own packaged future. The exact quantity capturing that failure is the micro-closure deficit
+\[
+\mathsf{CD}_\tau(\Pi)=I(X_t;Y_{t+\tau}\mid Y_t),
+\]
+which yields the decomposition
+\[
+H(Y_{t+\tau}\mid Y_t)=H(Y_{t+\tau}\mid X_t)+\mathsf{CD}_\tau(\Pi).
+\]
+This separates intrinsic substrate uncertainty from randomness introduced by discarded distinctions. The controlled Markov benchmark showed that the deficit vanishes on closed partitions and rises under controlled violations, while route mismatch tracks it closely. Budget-limited prediction showed that extra memory buys back hidden distinctions and lowers predictive loss. Toy hashing showed the same mechanism in a deterministic many-to-one map: one-wayness and random-lookingness emerge under bounded budgets and sufficient input entropy, not from entropy creation by the hash itself.
+
+Within Six Birds, this gives randomness a precise place. It is not a new primitive alongside P1--P6, and it is not interchangeable with novelty or irreversibility. It is the predictive residue of non-closure under a chosen packaging, staging scale, and maintenance budget. That residue can be measured exactly in controlled settings and approximated operationally when only coarser observables are available.
+
+The broader consequence is methodological. Debates about whether randomness is intrinsic or merely epistemic often collapse because the relevant layer has not been specified. Once the layer is specified, much of the question becomes concrete: which distinctions were stabilized into objects, which were left unresolved, and what would it cost to recover them? That is the sense in which randomness becomes an accounting problem. It is what remains after a theory has decided what to make real and what not to pay for.

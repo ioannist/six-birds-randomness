@@ -1,0 +1,57 @@
+{
+  "low_entropy_success_at_q_eq_dictsize": 1.0,
+  "medium_success_at_q_eq_dictsize": 0.4633333333333333,
+  "n_bits_for_q_eq_dictsize_stat": 16,
+  "notable_rows": [
+    {
+      "abs_err_to_q_over_2n": 9.5367431640625e-07,
+      "baseline_q_over_2n": 9.5367431640625e-07,
+      "distribution": "uniform",
+      "empirical_success": 0.0,
+      "label": "uniform_best_error",
+      "n_bits": 20,
+      "q": 1
+    },
+    {
+      "abs_err_to_q_over_2n": 0.3466666666666667,
+      "baseline_q_over_2n": 1.0,
+      "distribution": "uniform",
+      "empirical_success": 0.6533333333333333,
+      "label": "uniform_worst_error",
+      "n_bits": 8,
+      "q": 256
+    }
+  ],
+  "q_eq_dictsize": 256,
+  "randomness_tests": {
+    "low_entropy_detected": true,
+    "low_entropy_stats": {
+      "bit_runs_z": 1.6827277363148905,
+      "bit_serial_corr": -0.0019214400278546619,
+      "byte_chi2_z": 111.8478463544008,
+      "trunc_collision_ratio": 255.29684650439034,
+      "trunc_distinct_frac": 0.08533333333333333
+    },
+    "medium_markedly_differs_from_uniform": true,
+    "medium_stats": {
+      "bit_runs_z": 1.2612092637447987,
+      "bit_serial_corr": -0.001440457966768829,
+      "byte_chi2_z": 33.56846470349651,
+      "trunc_collision_ratio": 66.24256796710014,
+      "trunc_distinct_frac": 0.5693333333333334
+    },
+    "randtest_rep_n_bits": 16,
+    "randtest_samples": 3000,
+    "uniform_not_grossly_flagged": true,
+    "uniform_stats": {
+      "bit_runs_z": 0.055564120964897226,
+      "bit_serial_corr": -6.4708194256796e-05,
+      "byte_chi2_z": -0.6394139473599487,
+      "trunc_collision_ratio": 0.8158310547960431,
+      "trunc_distinct_frac": 0.9813333333333333
+    }
+  },
+  "uniform_error_subset_rule": "distribution==uniform and baseline_q_over_2n<=0.25",
+  "uniform_max_abs_error_to_q_over_2n": 0.016666666666666663,
+  "uniform_mean_abs_error_to_q_over_2n": 0.003696635275176077
+}

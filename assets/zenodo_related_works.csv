@@ -1,0 +1,13 @@
+relation,identifier,scheme,resource_type,bibkey,title
+Cites,10.5281/zenodo.18365949,DOI,other,tsiokos2026sixbirds,Six Birds: Foundations of Emergence Calculus
+Cites,10.5281/zenodo.18838994,DOI,other,tsiokos2026pica,To Create a Stone with Six Birds: Emergent Geometric and Thermodynamic Regimes from a Minimal Stochastic Substrate
+Cites,10.5281/zenodo.18495363,DOI,other,tsiokos2026notch,To Notch a Stone with Six Birds: Time as a Theory Artifact of Order, Measure, and Arrow
+Cites,10.1023/A:1010388907793,DOI,publication-article,shalizi2001computationalmechanics,Computational Mechanics: Pattern and Prediction, Structure and Simplicity
+Cites,10.1145/168588.168596,DOI,publication-conferencepaper,bellare1993randomoracles,Random Oracles are Practical: A Paradigm for Designing Efficient Protocols
+Cites,10.2307/3215235,DOI,publication-article,buchholz1994exactordinarylumpability,Exact and Ordinary Lumpability in Finite Markov Chains
+Cites,10.1109/TAC.2014.2364971,DOI,publication-article,geiger2015optimalkullbackleibleraggregation,Optimal Kullback--Leibler Aggregation via Information Bottleneck
+Cites,10.1007/978-3-540-25937-4_24,DOI,publication-conferencepaper,rogaway2004cryptographichashfunctionbasics,"Cryptographic Hash-Function Basics: Definitions, Implications, and Separations for Preimage Resistance, Second-Preimage Resistance, and Collision Resistance"
+Cites,10.1002/047174882X,DOI,publication-book,cover2006elementsofinformationtheory,Elements of Information Theory
+Cites,10.1103/PhysRevE.85.041125,DOI,publication-article,esposito2012stochasticthermodynamicsundercoarsegraining,Stochastic Thermodynamics under Coarse Graining
+Cites,10.1007/978-3-319-21401-6_26,DOI,publication-conferencepaper,demoura2015leantheoremprover,The Lean Theorem Prover (System Description)
+Cites,10.1145/3372885.3373824,DOI,publication-conferencepaper,mathlib2020leanmathematicallibrary,The Lean Mathematical Library

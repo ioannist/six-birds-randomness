@@ -1,0 +1,26 @@
+\section{Lean KL Bridge}\label{app:lean}
+
+The main text uses the expected-Kullback--Leibler form of closure deficit in \Cref{prop:cd-kl}. As a small formal appendix, the companion repository at \url{https://github.com/ioannist/six-birds-randomness} includes a machine-checked Lean development that bridges probability-level KL divergence to the expected log-likelihood ratio form used in the finite arguments \citep{demoura2015leantheoremprover,mathlib2020leanmathematicallibrary}. The formal artifact is intentionally modest. It does not attempt a full mechanization of conditional mutual information or of the complete closure-deficit theory. Instead it certifies the KL step on which the expected-divergence reading rests.
+
+For probability measures $\mu$ and $\nu$ with $\mu \ll \nu$, the formal development proves the identity
+\[
+(\mathrm{klDiv}(\mu,\nu))^{\mathrm{toReal}}
+=
+\int \mathrm{llr}_{\mu,\nu}\, d\mu,
+\]
+that is, the real-valued Kullback--Leibler divergence equals the integral of the log-likelihood ratio under $\mu$. From that bridge it derives the nonnegativity statement
+\[
+0 \le \int \mathrm{llr}_{\mu,\nu}\, d\mu.
+\]
+The development also records the zero-divergence characterization for probability measures, namely that KL divergence vanishes exactly when the two measures are equal.
+
+Conceptually, this appendix matters because the paper's finite-state formula
+\[
+\mathsf{CD}_\tau(\Pi)
+=
+\sum_x \pi(x)\,
+D_{\mathrm{KL}}\!\bigl(p_x^{(\tau)} \,\|\, \bar p_{\Pi(x)}^{(\tau)}\bigr)
+\]
+is an instance of this more general expected-divergence pattern. The Lean artifact therefore does not formalize the entire manuscript, but it does machine-check the bridge between divergence and expected log-likelihood ratio that underwrites the KL reading of hidden predictive residue.
+
+The tracked Lean files in the repository are the smoke module and the KL bridge module. Their role in the present paper is evidentiary rather than expository: they certify a core algebraic step, while the manuscript itself remains focused on the conceptual and empirical account of randomness as predictive non-closure.

@@ -1,0 +1,55 @@
+{
+  "run_name": "default",
+  "replicates": 1,
+  "families": [
+    {
+      "family": "exactly_lumpable",
+      "fixed": {
+        "n_macro": 3,
+        "fiber_sizes": [2, 2, 2],
+        "aperiodic_eps": 0.001
+      },
+      "sweep": {},
+      "taus": [1, 2],
+      "seeds": [101]
+    },
+    {
+      "family": "perturbed_lumpable",
+      "fixed": {
+        "n_macro": 3,
+        "fiber_sizes": [2, 2, 2],
+        "aperiodic_eps": 0.001
+      },
+      "sweep": {
+        "heterogeneity_alpha": [0.0, 0.2, 0.5]
+      },
+      "taus": [1, 2],
+      "seeds": [102]
+    },
+    {
+      "family": "metastable",
+      "fixed": {
+        "block_sizes": [3, 3, 2],
+        "p_in": 1.0
+      },
+      "sweep": {
+        "p_out": [0.02, 0.08, 0.2]
+      },
+      "taus": [1, 2],
+      "seeds": [103]
+    },
+    {
+      "family": "hidden_types",
+      "fixed": {
+        "n_macro": 3,
+        "fiber_sizes": [3, 2, 3],
+        "type_split": 0.5
+      },
+      "sweep": {
+        "strength": [0.1, 0.5, 0.9]
+      },
+      "taus": [1],
+      "seeds": [104]
+    }
+  ]
+}
