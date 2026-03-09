@@ -1,0 +1,127 @@
+\section{From Exact Quantity to Computable Diagnostics}\label{sec:diagnostics}
+
+The quantity $\mathsf{CD}_\tau(\Pi)$ is exact, but one rarely has direct access to the full stationary law of $(X_t,Y_t,Y_{t+\tau})$. In practice, the exact object must be approached through observables that live at different levels of accessibility. This section introduces three such bridges. The first is a route-mismatch diagnostic for coarse-grained Markov dynamics. The second is a predictive-gap proxy based on richer packaged history when the microstate itself is unavailable. The third is a budgeted log-loss formulation that turns randomness into a resource-relative curve. \Cref{tab:diagnostics} summarizes the relation between the exact quantity and the main operational surrogates used in the paper.
+
+\begin{table}[tbp]
+\centering
+\caption{The exact quantity used in this paper and the main diagnostics or proxies used to approximate it in practice.}
+\label{tab:diagnostics}
+\small
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{0.98\linewidth}{@{}>{\RaggedRight\arraybackslash}p{0.16\linewidth} >{\RaggedRight\arraybackslash}p{0.35\linewidth} >{\RaggedRight\arraybackslash}X@{}}
+\toprule
+Quantity & Formal role & Operational reading \\
+\midrule
+$\mathsf{CD}_\tau(\Pi)$ & exact hidden predictive information after conditioning on $Y_t$ & target object \\
+$\mathrm{RM}_\tau^{\mathrm{lift}}(\Pi)$ & stationary-weighted distributional mismatch between micro futures and induced macro rows & computable coarse-graining diagnostic \\
+$\Delta_{\mathrm{pred}}^{(2,1)}$ & extra held-out gain from one additional packaged-history step & macro-history proxy when $X_t$ is unavailable \\
+$\mathsf{Rand}_B(\Pi,\tau)$ & best achievable predictive log loss under feasible class $\mathcal{Q}_B$ & randomness--budget curve \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Suppose an operational coarse-graining procedure supplies, for each current packaged state $y \in \mathcal{Y}$, an induced packaged row $\widehat p_y^{(\tau,\mathrm{lift})}$ intended to summarize the $\tau$-step packaged future from that macrostate. Following the induced-kernel pipeline of \citeauthor{tsiokos2026pica}, such rows are obtained by choosing a lift on each fiber and then evolving for $\tau$ steps before pushing forward again \citep{tsiokos2026pica}. The associated stationary-weighted route mismatch is
+\begin{equation}
+\mathrm{RM}_\tau^{\mathrm{lift}}(\Pi)
+:=
+\sum_{x \in \mathcal{X}}
+\pi(x)\,
+\bigl\|
+p_x^{(\tau)} - \widehat p_{\Pi(x)}^{(\tau,\mathrm{lift})}
+\bigr\|_1.
+\label{eq:route-mismatch}
+\end{equation}
+When the lift is stationary-conditional, one has $\widehat p_y^{(\tau,\mathrm{lift})}=\bar p_y^{(\tau)}$ for every $y$, and we write the resulting quantity as $\mathrm{RM}_\tau^{\mathrm{stat}}(\Pi)$.
+
+\begin{proposition}[Route mismatch lower bound]\label{prop:rm-lower-bound}
+If the induced packaged rows coincide with the stationary-conditioned rows, then
+\begin{equation}
+\mathsf{CD}_\tau(\Pi)
+\ge
+\frac{1}{2}\bigl(\mathrm{RM}_\tau^{\mathrm{stat}}(\Pi)\bigr)^2.
+\label{eq:rm-lower-bound}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+By \Cref{prop:cd-kl},
+\[
+\mathsf{CD}_\tau(\Pi)
+=
+\sum_{x \in \mathcal{X}}
+\pi(x)\,
+D_{\mathrm{KL}}\!\bigl(
+p_x^{(\tau)}
+\,\|\,
+\bar p_{\Pi(x)}^{(\tau)}
+\bigr).
+\]
+Pinsker's inequality in natural units gives \citep{cover2006elementsofinformationtheory}
+\[
+D_{\mathrm{KL}}(p\|q)
+\ge
+\frac{1}{2}\|p-q\|_1^2.
+\]
+Therefore
+\[
+\mathsf{CD}_\tau(\Pi)
+\ge
+\frac{1}{2}
+\sum_{x \in \mathcal{X}}
+\pi(x)\,
+\bigl\|
+p_x^{(\tau)}-\bar p_{\Pi(x)}^{(\tau)}
+\bigr\|_1^2.
+\]
+Applying Jensen's inequality to the convex map $u \mapsto u^2$ yields
+\[
+\sum_{x \in \mathcal{X}}
+\pi(x)\,
+\bigl\|
+p_x^{(\tau)}-\bar p_{\Pi(x)}^{(\tau)}
+\bigr\|_1^2
+\ge
+\left(
+\sum_{x \in \mathcal{X}}
+\pi(x)\,
+\bigl\|
+p_x^{(\tau)}-\bar p_{\Pi(x)}^{(\tau)}
+\bigr\|_1
+\right)^2,
+\]
+which is exactly $\bigl(\mathrm{RM}_\tau^{\mathrm{stat}}(\Pi)\bigr)^2$.
+\end{proof}
+
+Thus the exact deficit controls any stationary-conditioned route-mismatch diagnostic. Operational route mismatch need not use the stationary-conditional lift, however. In particular, \emph{To Create a Stone with Six Birds} uses induced macro kernels derived from explicit lift choices, including uniform-in-fiber lifts, as a practical audit of how badly macro rows fail to summarize the micro futures they stand for \citep{tsiokos2026pica}. In the experiments below we report both a stationary version, which targets $\bar p_y^{(\tau)}$ directly, and a uniform version, which measures non-closure relative to a cheaper operational packaging choice.
+
+When the microstate is inaccessible but a packaged sequence $y_{1:T}$ is observed, one can still ask whether the current package is sufficient for one more packaged step. Let $\operatorname{NLL}_1$ and $\operatorname{NLL}_2$ denote held-out average negative log-likelihood under first- and second-order Markov predictors on the packaged sequence. Define the predictive gap
+\begin{equation}
+\Delta_{\mathrm{pred}}^{(2,1)}
+:=
+\operatorname{NLL}_1-\operatorname{NLL}_2.
+\label{eq:pred-gap}
+\end{equation}
+In the infinite-data idealization, with exact predictors of the stated orders on the same stationary source, this gap becomes
+\[
+\Delta_{\mathrm{pred}}^{(2,1)}
+=
+I(Y_{t-1};Y_{t+1}\mid Y_t).
+\]
+A positive gap therefore indicates that one additional unit of packaged history still carries predictive information not stabilized into the current package. This is the predictive non-closure signal used operationally in \emph{To Notch a Stone with Six Birds} \citep{tsiokos2026notch}. It is not identical to the micro-closure deficit: it probes hidden predictive residue inside macro history rather than inside the current microstate. But when omitted micro distinctions persist through the packaged history, the predictive gap becomes a practical proxy for the same underlying failure of closure.
+
+This viewpoint leads naturally to a budgeted notion of randomness. Let $\mathcal{Q}_B$ be a feasible predictor class available under budget $B$, and let $S_t^{(B)}$ denote the state summary accessible to that class. Define
+\begin{equation}
+\mathsf{Rand}_B(\Pi,\tau)
+:=
+\inf_{Q \in \mathcal{Q}_B}
+\mathbb{E}\!\left[
+-\log Q(Y_{t+\tau}\mid S_t^{(B)})
+\right].
+\label{eq:budgeted-rand}
+\end{equation}
+If $\mathcal{Q}_B$ contains all conditional distributions on the same accessible state, then $\mathsf{Rand}_B(\Pi,\tau)=H(Y_{t+\tau}\mid S_t^{(B)})$. As the budget grows and the feasible class expands, $\mathsf{Rand}_B(\Pi,\tau)$ can only decrease. In the simplest case studied later, $B=L$ is packaged memory order and $S_t^{(L)}=(Y_{t-L+1},\dots,Y_t)$. The resulting randomness--budget curve is then the held-out log loss of the best order-$L$ predictor. Extra memory lowers that curve exactly when the current package has failed to absorb distinctions that still matter for its future. At the top end of this scale, access to the exact microstate would reduce the best achievable loss to $H(Y_{t+\tau}\mid X_t)$, leaving only intrinsic substrate uncertainty.
+
+Three distinctions are important before turning to data. First, closure deficit is not novelty. A layer can have $\mathsf{CD}_\tau(\Pi)>0$ without forcing a theory extension or a new ontology. Second, closure deficit is not irreversibility. Arrow-of-time audits compare forward and reversed path measures and obey different monotonicity constraints under coarse-graining, whereas route mismatch and predictive gap only register unresolved predictive dependence \citep{tsiokos2026sixbirds,esposito2012stochasticthermodynamicsundercoarsegraining}. Hidden protocol phases or omitted state variables can therefore make a layer look random without certifying any genuine nonequilibrium drive. Third, route mismatch and predictive gap are diagnostics, not replacements for the exact object. They are useful precisely because $\mathsf{CD}_\tau(\Pi)$ is the right target and these observables track different operational shadows of it.
+
+With these bridges in place, the remaining sections can move back and forth between the exact quantity and the observables without changing the underlying claim. \Cref{sec:results-markov} uses route mismatch to track known closure deficits in controlled Markov families. \Cref{sec:results-budget} measures $\mathsf{Rand}_B$ directly through held-out log loss under increasing memory order. \Cref{sec:results-hashing} shows the same packaging-and-budget logic in a deterministic many-to-one map.

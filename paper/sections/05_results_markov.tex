@@ -1,0 +1,27 @@
+\section{Controlled Demonstrations}\label{sec:results}
+
+\subsection{Markov Coarse-Graining Benchmark}\label{sec:results-markov}
+
+We begin with the controlled finite-state benchmark in which the exact object $\mathsf{CD}_\tau(\Pi)$ is available by construction. The benchmark consists of four families: exactly lumpable chains \citep{kemeny1976finitemarkovchains,buchholz1994exactordinarylumpability}, perturbed-lumpable chains with heterogeneity parameter $\alpha \in \{0,0.2,0.5\}$, metastable block chains with escape parameter $p_{\mathrm{out}} \in \{0.02,0.08,0.20\}$, and hidden-type chains with within-fiber type strength in $\{0.1,0.5,0.9\}$. Across these $17$ staged conditions we compute the exact closure deficit, the intrinsic term, the decomposition residual, and both uniform- and stationary-lift route mismatch.
+
+The benchmark behaves exactly as \Cref{prop:cd-zero} predicts on the closed cases. The exactly lumpable constructions collapse to machine zero at both staging depths: at $\tau=1$, for example, the benchmark gives $\mathsf{CD}_1(\Pi)=4.34\times 10^{-17}$ and $\mathrm{RM}^{\mathrm{uniform}}_1(\Pi)=5.29\times 10^{-17}$. The decomposition identity is numerically stable throughout the sweep, with maximum absolute residual $2.87\times 10^{-16}$ over all rows. In this sense the benchmark serves as a calibration device: the exact object vanishes when it should vanish, and the numerical implementation does not introduce visible leakage.
+
+Once within-fiber predictive heterogeneity is introduced, the deficit becomes strictly positive and the cheaper uniform-lift mismatch already tracks it closely. Over all benchmark rows, the Pearson correlation between $\mathrm{RM}^{\mathrm{uniform}}$ and $\mathsf{CD}$ is $r=0.959$. The most extreme perturbed-lumpable condition, $\alpha=0.5$ at $\tau=1$, reaches $\mathsf{CD}=0.0482$ with $\mathrm{RM}^{\mathrm{uniform}}=0.2757$. The strongest hidden-type condition reaches $\mathsf{CD}=0.0310$ with $\mathrm{RM}^{\mathrm{uniform}}=0.2125$. By contrast, the metastable family produces smaller but still systematic non-closure, topping out at $\mathsf{CD}=7.22\times 10^{-4}$ and $\mathrm{RM}^{\mathrm{uniform}}=2.30\times 10^{-2}$ when $p_{\mathrm{out}}=0.20$. \Cref{fig:markov-rm-cd} shows the aggregate pattern. Although \Cref{prop:rm-lower-bound} is stated for the stationary-conditioned route mismatch, the cheaper operational mismatch already serves as a practical proxy for non-closure in this controlled setting.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.85\linewidth]{markov_rm_vs_cd}
+\caption{Uniform-lift route mismatch against exact closure deficit across the controlled Markov benchmark. Exactly lumpable cases remain at numerical zero, while controlled within-fiber heterogeneity and hidden types move points away from the origin in tandem.}
+\label{fig:markov-rm-cd}
+\end{figure}
+
+The perturbed-lumpable family isolates the cleanest knob, because only the within-fiber heterogeneity parameter $\alpha$ is varied. At $\tau=1$, raising $\alpha$ from $0.2$ to $0.5$ increases the exact closure deficit from $0.00827$ to $0.0482$. At $\tau=2$, the same perturbations remain visible but contract to $0.00125$ and $0.00479$, respectively. \Cref{fig:markov-cd-heterogeneity} makes the staging effect explicit: longer staging partially absorbs the predictive consequences of hidden micro-variation, but it does not erase them. This is precisely the P4 point in Six Birds terms. Randomness is not fixed independently of scale; it is what remains unresolved at the scale and timescale the layer chooses to run.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=0.85\linewidth]{markov_cd_vs_heterogeneity}
+\caption{Exact closure deficit in the perturbed-lumpable family as a function of within-fiber heterogeneity $\alpha$. Increasing heterogeneity raises the deficit, while larger staging depth $\tau$ reduces but does not eliminate it.}
+\label{fig:markov-cd-heterogeneity}
+\end{figure}
+
+The controlled benchmark therefore establishes the key empirical claim of the paper in the cleanest possible setting. Closure deficit vanishes on closed partitions, rises under controlled violations, and is tracked well by route-mismatch diagnostics that are much cheaper to compute than the exact object. The next subsection turns from controlled coarse-graining to the complementary question of what it costs to buy those hidden distinctions back once the current package has failed to stabilize them.

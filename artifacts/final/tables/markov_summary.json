@@ -1,0 +1,18 @@
+{
+  "cd": {
+    "max": 0.04815847564477198,
+    "mean": 0.006178180360100233,
+    "min": 3.1484203101260553e-17
+  },
+  "counts_by_family": {
+    "exactly_lumpable": 2,
+    "hidden_types": 3,
+    "metastable": 6,
+    "perturbed_lumpable": 6
+  },
+  "rm_uniform": {
+    "max": 0.275729171224746,
+    "mean": 0.05532832867701837,
+    "min": 5.286660781094375e-17
+  }
+}

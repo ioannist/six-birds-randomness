@@ -1,0 +1,30 @@
+{
+  "run_name": "smoke",
+  "replicates": 1,
+  "families": [
+    {
+      "family": "exactly_lumpable",
+      "fixed": {
+        "n_macro": 3,
+        "fiber_sizes": [2, 2, 2],
+        "aperiodic_eps": 0.001
+      },
+      "sweep": {},
+      "taus": [1],
+      "seeds": [201]
+    },
+    {
+      "family": "perturbed_lumpable",
+      "fixed": {
+        "n_macro": 3,
+        "fiber_sizes": [2, 2, 2],
+        "aperiodic_eps": 0.001
+      },
+      "sweep": {
+        "heterogeneity_alpha": [0.5]
+      },
+      "taus": [1],
+      "seeds": [202]
+    }
+  ]
+}
