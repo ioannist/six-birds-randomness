@@ -1,4 +1,4 @@
-.PHONY: pdf clean distclean
+.PHONY: pdf clean distclean flatten
 
 pdf:
 	mkdir -p build
@@ -10,6 +10,16 @@ pdf:
 		bibtex build/main; \
 		pdflatex -interaction=nonstopmode -halt-on-error -output-directory=build main.tex; \
 		pdflatex -interaction=nonstopmode -halt-on-error -output-directory=build main.tex; \
+	fi
+	$(MAKE) flatten
+
+flatten:
+	mkdir -p build
+	@if command -v latexpand >/dev/null 2>&1; then \
+		latexpand -o build/main_flat.tex main.tex; \
+	else \
+		echo "latexpand not found; cannot write build/main_flat.tex" >&2; \
+		exit 1; \
 	fi
 
 clean:
