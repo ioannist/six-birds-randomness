@@ -1,15 +1,13 @@
 \section{Conclusion}\label{sec:conclusion}
 
-We have argued that a layer looks random exactly to the extent that its current packaged state has failed to become a sufficient statistic for its own packaged future. The exact quantity capturing that failure is the micro-closure deficit
+A description looks random, beyond whatever noise its substrate really has, to the extent that its current state is not a sufficient statistic for its own future. The micro-closure deficit
 \[
-\mathsf{CD}_\tau(\Pi)=I(X_t;Y_{t+\tau}\mid Y_t),
+\mathsf{CD}_\tau(\Pi)=I(X_t;Y_{t+\tau}\mid Y_t)
 \]
-which yields the decomposition
+measures that failure exactly, through the decomposition
 \[
 H(Y_{t+\tau}\mid Y_t)=H(Y_{t+\tau}\mid X_t)+\mathsf{CD}_\tau(\Pi).
 \]
-This separates intrinsic substrate uncertainty from randomness introduced by discarded distinctions. The controlled Markov benchmark showed that the deficit vanishes on closed partitions and rises under controlled violations, while route mismatch tracks it closely. Budget-limited prediction showed that extra memory buys back hidden distinctions and lowers predictive loss. Toy hashing showed the same mechanism in a deterministic many-to-one map: one-wayness and random-lookingness emerge under bounded budgets and sufficient input entropy, not from entropy creation by the hash itself.
+The deficit is zero for closed packagings, and under full stationary support only for them. It bounds the squared stationary route mismatch, and for Markov substrates it caps what any finite window of packaged memory can recover. In controlled Markov chains, it vanishes on lumpable partitions and tracks route mismatch closely. In a memory benchmark, exact entropies show packaged memory recovering a small, well-defined part of a known deficit, and finite-sample models selected on validation data recover the first two steps of that descent. In a toy hashing experiment, a deterministic map looks random under bounded search only when its inputs carry enough entropy.
 
-Within Six Birds, this gives randomness a precise place. It is not a new primitive alongside P1--P6, and it is not interchangeable with novelty or irreversibility. It is the predictive residue of non-closure under a chosen packaging, staging scale, and maintenance budget. That residue can be measured exactly in controlled settings and approximated operationally when only coarser observables are available.
-
-The broader consequence is methodological. Debates about whether randomness is intrinsic or merely epistemic often collapse because the relevant layer has not been specified. Once the layer is specified, much of the question becomes concrete: which distinctions were stabilized into objects, which were left unresolved, and what would it cost to recover them? That is the sense in which randomness becomes an accounting problem. It is what remains after a theory has decided what to make real and what not to pay for.
+Within Six Birds, this gives randomness a definite place. It is not a seventh primitive, and it is neither novelty nor irreversibility. It is the predictive residue of non-closure under a chosen packaging, time scale, and budget, exact in finite models and approachable through observable diagnostics elsewhere. Much of the debate over whether randomness is intrinsic or merely epistemic dissolves once the layer is specified. What remains are concrete questions: which distinctions were kept, which were discarded, and what it would cost to recover them.

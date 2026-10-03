@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
+"""Publication figures for the manuscript, built from the tracked data in paper/data."""
+
 from __future__ import annotations
 
 import csv
-import math
+import json
+import shutil
 from pathlib import Path
 
 import matplotlib
@@ -12,333 +15,352 @@ import matplotlib.patches as patches
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Reference palette: categorical slots 1-3 validate on all pairs (scatter-safe).
+BLUE, ORANGE, AQUA = "#2a78d6", "#eb6834", "#1baf7a"
+INK, INK2, MUTED = "#0b0b0b", "#52514e", "#898781"
+GRID, AXIS = "#e1e0d9", "#c3c2b7"
+FAMILY = {
+    "perturbed_lumpable": (BLUE, "o", "perturbed lumpable"),
+    "metastable": (ORANGE, "s", "metastable"),
+    "hidden_types": (AQUA, "^", "hidden types"),
+}
 
-def to_float(value: str | None) -> float:
-    if value is None:
-        return float("nan")
-    text = value.strip()
-    if text == "":
-        return float("nan")
-    try:
-        return float(text)
-    except ValueError:
-        return float("nan")
+WIDTH = 6.3  # inches, matches the text block
 
 
-def read_csv_rows(path: Path) -> list[dict[str, str]]:
+def setup_style() -> None:
+    usetex = shutil.which("latex") is not None
+    plt.rcParams.update({
+        "text.usetex": usetex,
+        "font.family": "serif",
+        "font.serif": ["Computer Modern Roman"] if usetex else ["DejaVu Serif"],
+        "mathtext.fontset": "cm",
+        "text.latex.preamble": r"\usepackage{amsmath}\usepackage{amssymb}",
+        "font.size": 9,
+        "axes.titlesize": 9.5,
+        "axes.labelsize": 9,
+        "legend.fontsize": 8,
+        "xtick.labelsize": 8,
+        "ytick.labelsize": 8,
+        "axes.edgecolor": AXIS,
+        "axes.linewidth": 0.8,
+        "axes.labelcolor": INK,
+        "axes.titlecolor": INK,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+        "axes.grid": True,
+        "grid.color": GRID,
+        "grid.linewidth": 0.6,
+        "grid.linestyle": "-",
+        "xtick.color": INK2,
+        "ytick.color": INK2,
+        "xtick.major.size": 3,
+        "ytick.major.size": 3,
+        "legend.frameon": False,
+        "lines.linewidth": 1.6,
+        "lines.markersize": 5.5,
+        "savefig.bbox": "tight",
+        "savefig.pad_inches": 0.02,
+        "pdf.fonttype": 42,
+    })
+
+
+def read_csv(path: Path) -> list[dict[str, str]]:
     with path.open(newline="", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
-def ensure_dir(path: Path) -> None:
-    path.mkdir(parents=True, exist_ok=True)
+def panel_label(ax, text: str) -> None:
+    ax.text(-0.02, 1.04, text, transform=ax.transAxes, fontsize=10,
+            fontweight="bold", va="bottom", ha="right", color=INK)
 
 
-def conceptual_schematic(out_path: Path) -> None:
-    fig, ax = plt.subplots(figsize=(9.2, 3.9))
-    ax.set_xlim(0.0, 1.0)
-    ax.set_ylim(0.0, 1.0)
-    ax.set_axis_off()
+# ---------------------------------------------------------------- Figure 1
 
-    arrow_color = "#262626"
-    edge_color = "#333333"
-    box_specs = [
-        (0.08, 0.58, 0.20, 0.18, r"$X_t$", "#eef4ff"),
-        (0.39, 0.58, 0.23, 0.18, r"$Y_t = \Pi(X_t)$", "#f6f6f6"),
-        (0.74, 0.58, 0.18, 0.18, r"$Y_{t+\tau}$", "#eef8f0"),
+
+def concept_figure(out: Path) -> None:
+    """Closed versus non-closed package: per-microstate futures and their mixture."""
+    closed = [[0.6, 0.3, 0.1]] * 3
+    open_ = [[0.80, 0.15, 0.05], [0.25, 0.60, 0.15], [0.15, 0.25, 0.60]]
+    weights = [0.5, 0.3, 0.2]
+    titles = [r"(a) closed package: $\mathsf{CD}=0$",
+              r"(b) non-closed package: $\mathsf{CD}>0$"]
+
+    fig = plt.figure(figsize=(WIDTH, 2.6))
+    for col, rows in enumerate([closed, open_]):
+        x0 = 0.5 * col
+        fig.patches.append(patches.FancyBboxPatch(
+            (x0 + 0.075, 0.03), 0.215, 0.80, boxstyle="round,pad=0.0,rounding_size=0.02",
+            linewidth=0.8, edgecolor=AXIS, facecolor="#f4f4f1", transform=fig.transFigure,
+            zorder=-5))
+        fig.text(x0 + 0.25, 0.97, titles[col], ha="center", va="top", fontsize=9.5)
+        fig.text(x0 + 0.1825, 0.855, r"package $y$", ha="center", va="bottom",
+                 fontsize=8, color=INK2)
+        for i, (row, w) in enumerate(zip(rows, weights)):
+            ax = fig.add_axes([x0 + 0.10, 0.60 - 0.265 * i, 0.165, 0.19])
+            ax.set_facecolor("none")
+            ax.bar(range(3), row, width=0.6, color=BLUE, zorder=2)
+            ax.set_ylim(0, 1)
+            ax.set_xticks(range(3), ["A", "B", "C"] if i == 2 else ["", "", ""])
+            ax.set_yticks([])
+            ax.grid(False)
+            ax.spines["left"].set_visible(False)
+            ax.tick_params(axis="x", length=0, pad=1.5, labelsize=7)
+            fig.text(x0 + 0.06, 0.695 - 0.265 * i, rf"$x_{i + 1}$", ha="right",
+                     va="center", fontsize=9.5)
+            fig.text(x0 + 0.06, 0.635 - 0.265 * i, rf"$\pi={w}$", ha="right",
+                     va="center", fontsize=7, color=INK2)
+        ax = fig.add_axes([x0 + 0.345, 0.335, 0.11, 0.19])
+        ax.bar(range(3), np.average(np.array(rows), axis=0, weights=weights),
+               width=0.6, color=ORANGE, zorder=2)
+        ax.set_ylim(0, 1)
+        ax.set_xticks(range(3), ["A", "B", "C"])
+        ax.set_yticks([])
+        ax.grid(False)
+        ax.spines["left"].set_visible(False)
+        ax.tick_params(axis="x", length=0, pad=1.5, labelsize=7)
+        fig.text(x0 + 0.40, 0.56, "package forecast\n" + r"$\bar p_y$ (weighted mix)",
+                 ha="center", va="bottom", fontsize=7.6, color=INK2)
+        fig.patches.append(patches.FancyArrowPatch(
+            (x0 + 0.295, 0.43), (x0 + 0.335, 0.43), arrowstyle="-|>", mutation_scale=9,
+            linewidth=1.0, color=INK2, transform=fig.transFigure))
+        note = (r"every $p_{x_i}$ equals $\bar p_y$" if col == 0
+                else r"the $p_{x_i}$ differ from $\bar p_y$")
+        fig.text(x0 + 0.40, 0.20, note, ha="center", va="top", fontsize=7.6, color=INK2)
+    fig.savefig(out)
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------- Figure 2
+
+
+def markov_rm_cd(path: Path, out: Path) -> None:
+    rows = read_csv(path)
+    fig, axes = plt.subplots(1, 2, figsize=(WIDTH, 2.7), sharey=True)
+    for ax, key, title in [
+        (axes[0], "rm_stationary", r"stationary-lift mismatch $\mathrm{RM}^{\mathrm{stat}}_\tau$"),
+        (axes[1], "rm_uniform", r"uniform-lift mismatch $\mathrm{RM}^{\mathrm{unif}}_\tau$"),
+    ]:
+        for fam, (color, marker, label) in FAMILY.items():
+            for tau, filled in [(1, True), (2, False)]:
+                pts = [(float(r[key]), float(r["cd"])) for r in rows
+                       if r["family"] == fam and int(r["tau"]) == tau and float(r["cd"]) > 1e-12]
+                if not pts:
+                    continue
+                xs, ys = zip(*pts)
+                ax.scatter(xs, ys, s=30, marker=marker, zorder=3,
+                           facecolor=color if filled else "white", edgecolor=color, linewidth=1.2,
+                           label=f"{label}, $\\tau={tau}$")
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        ax.set_xlabel(title)
+        ax.set_xlim(1.5e-3, 0.6)
+        ax.set_ylim(1.5e-6, 0.12)
+    grid = np.logspace(np.log10(1.5e-3), np.log10(0.6), 100)
+    axes[0].plot(grid, 0.5 * grid**2, color=INK2, linewidth=1.1, zorder=1)
+    axes[0].text(0.06, 0.5 * 0.06**2 / 3.0, r"$\tfrac12(\mathrm{RM}^{\mathrm{stat}})^2$",
+                 rotation=33, fontsize=8, color=INK2, ha="center", va="top")
+    axes[0].set_ylabel(r"closure deficit $\mathsf{CD}_\tau(\Pi)$ (nats)")
+    panel_label(axes[0], "a")
+    panel_label(axes[1], "b")
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, loc="lower center", ncol=3, bbox_to_anchor=(0.5, -0.17),
+               columnspacing=1.2, handletextpad=0.3)
+    fig.tight_layout()
+    fig.savefig(out)
+    plt.close(fig)
+
+
+# ---------------------------------------------------------------- Figure 3
+
+
+def markov_knobs(path: Path, out: Path) -> None:
+    rows = read_csv(path)
+    specs = [
+        ("perturbed_lumpable", "heterogeneity_alpha", r"heterogeneity $\alpha$"),
+        ("metastable", "p_out", r"escape weight $p_{\mathrm{out}}$"),
+        ("hidden_types", "strength", r"type strength $s$"),
     ]
-    for x, y, w, h, label, facecolor in box_specs:
-        rect = patches.FancyBboxPatch(
-            (x, y),
-            w,
-            h,
-            boxstyle="round,pad=0.02,rounding_size=0.03",
-            linewidth=1.5,
-            edgecolor=edge_color,
-            facecolor=facecolor,
-            transform=ax.transAxes,
-        )
-        ax.add_patch(rect)
-        ax.text(
-            x + w / 2.0,
-            y + h / 2.0,
-            label,
-            ha="center",
-            va="center",
-            fontsize=12.5,
-            transform=ax.transAxes,
-        )
-
-    arrow = dict(arrowstyle="-|>", lw=1.6, color=arrow_color, mutation_scale=11)
-    ax.annotate("", xy=(0.39, 0.67), xytext=(0.28, 0.67), xycoords="axes fraction", arrowprops=arrow)
-    ax.text(
-        0.39,
-        0.81,
-        r"packaging $\Pi$",
-        ha="center",
-        va="bottom",
-        fontsize=10.5,
-        bbox=dict(boxstyle="round,pad=0.12", facecolor="white", edgecolor="none"),
-        transform=ax.transAxes,
-    )
-
-    ax.annotate("", xy=(0.74, 0.67), xytext=(0.62, 0.67), xycoords="axes fraction", arrowprops=arrow)
-    ax.text(
-        0.74,
-        0.81,
-        "packaged prediction",
-        ha="center",
-        va="bottom",
-        fontsize=10.5,
-        bbox=dict(boxstyle="round,pad=0.12", facecolor="white", edgecolor="none"),
-        transform=ax.transAxes,
-    )
-
-    ax.annotate("", xy=(0.74, 0.37), xytext=(0.18, 0.37), xycoords="axes fraction", arrowprops=arrow)
-    ax.text(
-        0.46,
-        0.30,
-        r"full micro prediction from $X_t$",
-        ha="center",
-        va="center",
-        fontsize=10.5,
-        bbox=dict(boxstyle="round,pad=0.18", facecolor="white", edgecolor="none"),
-        transform=ax.transAxes,
-    )
-
-    eq_box = patches.FancyBboxPatch(
-        (0.17, 0.08),
-        0.66,
-        0.13,
-        boxstyle="round,pad=0.02,rounding_size=0.03",
-        linewidth=0.9,
-        edgecolor="#d0d0d0",
-        facecolor="#fafafa",
-        transform=ax.transAxes,
-    )
-    ax.add_patch(eq_box)
-    ax.text(
-        0.5,
-        0.145,
-        r"$H(Y_{t+\tau}\mid Y_t)=H(Y_{t+\tau}\mid X_t)+\mathsf{CD}_\tau(\Pi)$",
-        ha="center",
-        va="center",
-        fontsize=13.2,
-        transform=ax.transAxes,
-    )
-
-    fig.savefig(out_path, bbox_inches="tight", facecolor="white")
+    fig, axes = plt.subplots(1, 3, figsize=(WIDTH, 2.15))
+    for ax, (fam, knob, xlabel) in zip(axes, specs):
+        color, marker, label = FAMILY[fam]
+        for tau, filled in [(1, True), (2, False)]:
+            pts = sorted((float(r[knob]), float(r["cd"])) for r in rows
+                         if r["family"] == fam and int(r["tau"]) == tau)
+            if not pts:
+                continue
+            xs, ys = zip(*pts)
+            ax.plot(xs, np.maximum(ys, 0.0), color=color, linewidth=1.3,
+                    linestyle="-" if filled else (0, (3, 2)), zorder=2)
+            ax.scatter(xs, np.maximum(ys, 0.0), marker=marker, s=26, zorder=3,
+                       facecolor=color if filled else "white", edgecolor=color, linewidth=1.2,
+                       label=rf"$\tau={tau}$")
+        ax.set_title(label + (r", $\tau=1$ only" if fam == "hidden_types" else ""), y=1.1)
+        ax.set_xlabel(xlabel)
+        ax.set_ylim(bottom=0)
+        ax.ticklabel_format(axis="y", style="sci", scilimits=(-2, 2))
+        if fam != "hidden_types":
+            ax.legend(loc="upper left", handletextpad=0.2)
+    axes[0].set_ylabel(r"$\mathsf{CD}_\tau(\Pi)$ (nats)")
+    fig.tight_layout(w_pad=1.2)
+    fig.savefig(out)
     plt.close(fig)
 
 
-def markov_rm_vs_cd(path: Path, out_path: Path) -> None:
-    rows = read_csv_rows(path)
-    points = []
-    for r in rows:
-        x = to_float(r.get("rm_uniform"))
-        y = to_float(r.get("cd"))
-        fam = (r.get("family") or "").strip() or "unknown"
-        if np.isfinite(x) and np.isfinite(y):
-            points.append((x, y, fam))
+# ---------------------------------------------------------------- Figure 4
 
-    fig, ax = plt.subplots(figsize=(6.4, 4.4))
-    markers = ["o", "s", "^", "D", "v", "P", "X"]
-    families = sorted({p[2] for p in points})
-    for i, fam in enumerate(families):
-        xs = [p[0] for p in points if p[2] == fam]
-        ys = [p[1] for p in points if p[2] == fam]
-        ax.scatter(xs, ys, marker=markers[i % len(markers)], label=fam)
 
-    if len(points) >= 2:
-        x_all = np.array([p[0] for p in points], dtype=float)
-        y_all = np.array([p[1] for p in points], dtype=float)
-        m, b = np.polyfit(x_all, y_all, 1)
-        x_line = np.linspace(np.min(x_all), np.max(x_all), 100)
-        ax.plot(x_line, m * x_line + b, linestyle="--", linewidth=1.5)
+def budget_figure(metrics_path: Path, pop_path: Path, out: Path) -> None:
+    rows = read_csv(metrics_path)
+    pop = json.loads(pop_path.read_text())["budget_chain"]
+    orders = [int(r["order"]) for r in rows]
+    population = [float(r["history_entropy_theory"]) for r in rows]
+    per_order = [float(r["nll_exact"]) for r in rows]
+    selected = [float(r["nll_selected"]) for r in rows]
+    floor = pop["intrinsic"]
+    hzy = pop["h_next_given_current"]
 
-    ax.set_xlabel(r"Route mismatch $\mathrm{RM}_{\tau}^{\mathrm{uniform}}$")
-    ax.set_ylabel(r"Closure deficit $\mathsf{CD}_{\tau}(\Pi)$")
-    ax.legend(frameon=True)
-    fig.savefig(out_path, bbox_inches="tight")
+    fig, axes = plt.subplots(1, 2, figsize=(WIDTH, 2.7), gridspec_kw={"width_ratios": [1, 1.25]})
+
+    ax = axes[0]
+    ax.plot(orders, population, color=BLUE, marker="o", zorder=3,
+            label=r"population $H(Y_{t+1}\mid S_L)$")
+    ax.axhline(floor, color=INK2, linewidth=1.0)
+    ax.text(5, floor + 0.004, r"microstate floor $H(Y_{t+1}\mid X_t)$", ha="right",
+            va="bottom", fontsize=7.8, color=INK2)
+    ax.annotate("", xy=(0.25, floor), xytext=(0.25, hzy),
+                arrowprops=dict(arrowstyle="<->", lw=0.9, color=ORANGE))
+    ax.text(0.4, (floor + hzy) / 2, rf"$\mathsf{{CD}}_1={pop['cd']:.3f}$", color=INK,
+            fontsize=8, va="center")
+    ax.set_xlabel(r"packaged memory order $L$")
+    ax.set_ylabel("log loss (nats)")
+    ax.set_ylim(0.92, 1.11)
+    ax.set_xticks(orders)
+    ax.legend(loc="upper right")
+    panel_label(ax, "a")
+
+    ax = axes[1]
+    ax.plot(orders, population, color=BLUE, marker="o", zorder=3, label="population entropy")
+    ax.plot(orders, selected, color=ORANGE, marker="s", zorder=4,
+            label="validation-selected model, test loss")
+    ax.scatter(orders, per_order, marker="o", s=26, facecolor="white", edgecolor=ORANGE,
+               linewidth=1.2, zorder=5, label="each fitted order, test loss")
+    ax.set_ylim(1.025, 1.10)
+    ax.annotate(rf"order 5: {per_order[5]:.3f} (off scale)", xy=(5, 1.0995), xytext=(3.4, 1.0985),
+                fontsize=7.6, color=INK2, ha="center",
+                arrowprops=dict(arrowstyle="-|>", lw=0.8, color=INK2))
+    ax.set_xlabel(r"packaged memory order $L$")
+    ax.set_xticks(orders)
+    ax.legend(loc="upper right", bbox_to_anchor=(1.0, 0.86))
+    panel_label(ax, "b")
+    fig.tight_layout(w_pad=1.5)
+    fig.savefig(out)
     plt.close(fig)
 
 
-def markov_cd_vs_heterogeneity(path: Path, out_path: Path) -> None:
-    rows = read_csv_rows(path)
-    curves: dict[int, list[tuple[float, float]]] = {}
-    for r in rows:
-        if (r.get("family") or "").strip() != "perturbed_lumpable":
-            continue
-        alpha = to_float(r.get("heterogeneity_alpha"))
-        cd = to_float(r.get("cd"))
-        tau = to_float(r.get("tau"))
-        if np.isfinite(alpha) and np.isfinite(cd) and np.isfinite(tau):
-            curves.setdefault(int(round(tau)), []).append((alpha, cd))
-
-    fig, ax = plt.subplots(figsize=(6.4, 4.4))
-    for tau in sorted(curves):
-        pts = sorted(curves[tau], key=lambda t: t[0])
-        ax.plot([p[0] for p in pts], [p[1] for p in pts], marker="o", label=rf"$\tau={tau}$")
-
-    ax.set_xlabel(r"Heterogeneity $\alpha$")
-    ax.set_ylabel(r"Closure deficit $\mathsf{CD}_{\tau}(\Pi)$")
-    ax.legend(frameon=True)
-    fig.savefig(out_path, bbox_inches="tight")
-    plt.close(fig)
+# ---------------------------------------------------------------- Figure 5
 
 
-def budget_curve(path: Path, out_path: Path) -> None:
-    rows = read_csv_rows(path)
-    by_order: dict[int, list[float]] = {}
-    hyy_vals = []
-    for r in rows:
-        order = to_float(r.get("order"))
-        nll = to_float(r.get("nll"))
-        hyy = to_float(r.get("hyy_theory"))
-        if np.isfinite(order) and np.isfinite(nll):
-            by_order.setdefault(int(round(order)), []).append(nll)
-        if np.isfinite(hyy):
-            hyy_vals.append(hyy)
+def hashing_figure(path: Path, out: Path) -> None:
+    rows = read_csv(path)
+    fig, axes = plt.subplots(1, 2, figsize=(WIDTH, 2.75))
 
-    orders = sorted(by_order)
-    nlls = [float(np.mean(by_order[o])) for o in orders]
-    hyy = float(np.mean(hyy_vals)) if hyy_vals else float("nan")
-
-    fig, ax = plt.subplots(figsize=(6.4, 4.4))
-    ax.plot(orders, nlls, marker="o", label="held-out NLL")
-    if np.isfinite(hyy):
-        ax.axhline(hyy, linestyle="--", linewidth=1.5, label=r"$H(Y_{t+\tau}\mid Y_t)$ theory")
-    ax.set_xlabel("Memory order")
-    ax.set_ylabel("Held-out predictive log loss (nats)")
-    ax.legend(frameon=True)
-    fig.savefig(out_path, bbox_inches="tight")
-    plt.close(fig)
-
-
-def hashing_inversion(path: Path, out_path: Path) -> None:
-    rows = read_csv_rows(path)
-    grouped: dict[int, list[tuple[float, float]]] = {}
-    for r in rows:
-        if (r.get("distribution") or "").strip() != "uniform":
-            continue
-        x = to_float(r.get("baseline_q_over_2n"))
-        y = to_float(r.get("empirical_success"))
-        n_bits = to_float(r.get("n_bits"))
-        if np.isfinite(x) and np.isfinite(y) and np.isfinite(n_bits) and x <= 0.25:
-            grouped.setdefault(int(round(n_bits)), []).append((x, y))
-
-    fig, ax = plt.subplots(figsize=(6.4, 4.4))
-    for n_bits in sorted(grouped):
-        pts = sorted(grouped[n_bits], key=lambda t: t[0])
-        ax.plot([p[0] for p in pts], [p[1] for p in pts], marker="o", linestyle="-", label=rf"$n={n_bits}$")
-
-    max_x = max((p[0] for pts in grouped.values() for p in pts), default=0.25)
-    ax.plot([0.0, max_x], [0.0, max_x], linestyle="--", linewidth=1.3, label="y=x")
-    ax.set_xlabel(r"$q/2^n$ (baseline)")
-    ax.set_ylabel("Empirical inversion success")
-    ax.legend(frameon=True)
-    fig.savefig(out_path, bbox_inches="tight")
-    plt.close(fig)
-
-
-def hashing_collision_ratio(path: Path, out_path: Path) -> None:
-    rows = read_csv_rows(path)
-    order = ["uniform", "medium_mixture", "low_entropy"]
-    vals = {k: float("nan") for k in order}
-    for r in rows:
-        d = (r.get("distribution") or "").strip()
-        if d in vals:
-            vals[d] = to_float(r.get("trunc_collision_ratio"))
-
-    fig, ax = plt.subplots(figsize=(6.2, 4.2))
-    x = np.arange(len(order))
-    y = [vals[d] for d in order]
-    ax.bar(x, y)
+    ax = axes[0]
+    colors = {8: BLUE, 12: ORANGE, 16: AQUA, 20: INK2}
+    markers = {8: "o", 12: "s", 16: "^", 20: "D"}
+    grid = np.logspace(-6.2, 0, 200)
+    ax.plot(grid, grid, color=AXIS, linewidth=1.0, zorder=1)
+    for n in (8, 12, 16, 20):
+        pts = [(float(r["baseline_exact"]), float(r["empirical_success"]), float(r["success_se"]))
+               for r in rows if r["distribution"] == "uniform" and int(r["n_bits"]) == n]
+        ref, emp, se = map(np.array, zip(*pts))
+        hit = emp > 0
+        ax.errorbar(ref[hit], emp[hit], yerr=se[hit], fmt=markers[n], color=colors[n],
+                    markersize=4.5, elinewidth=0.8, capsize=0, zorder=3, label=rf"$n={n}$")
+        ax.scatter(ref[~hit], np.full((~hit).sum(), 1.5e-3), marker=markers[n], s=18,
+                   facecolor="white", edgecolor=colors[n], linewidth=1.0, zorder=3)
+    ax.axhline(2.4e-3, color=GRID, linewidth=0.8)
+    ax.text(1.2e-2, 1.5e-3, "no success\nin 300 trials", fontsize=7, color=MUTED, va="center")
+    ax.set_xscale("log")
     ax.set_yscale("log")
-    ax.set_xticks(x)
-    ax.set_xticklabels(order)
-    ax.set_ylabel("Truncated collision ratio")
-    fig.savefig(out_path, bbox_inches="tight")
+    ax.set_xlim(1e-6, 1.3)
+    ax.set_ylim(1.1e-3, 1.3)
+    ax.set_xlabel("ideal random-function reference")
+    ax.set_ylabel("empirical inversion success")
+    ax.legend(loc="upper left", handletextpad=0.2)
+    panel_label(ax, "a")
+
+    ax = axes[1]
+    for dist, color, marker, label in [
+        ("uniform", BLUE, "o", "uniform ($2^{32}$ inputs)"),
+        ("medium_mixture", ORANGE, "s", "50/50 mixture"),
+        ("low_entropy", AQUA, "^", "dictionary (256 inputs)"),
+    ]:
+        pts = sorted((int(r["q"]), float(r["empirical_success"])) for r in rows
+                     if r["distribution"] == dist and int(r["n_bits"]) == 16)
+        q, s = zip(*pts)
+        ax.plot(q, s, color=color, marker=marker, label=label, zorder=3)
+    ref = sorted((int(r["q"]), float(r["baseline_exact"])) for r in rows
+                 if r["distribution"] == "uniform" and int(r["n_bits"]) == 16)
+    ax.plot(*zip(*ref), color=INK2, linewidth=1.0, zorder=2, label="random-function reference")
+    ax.set_xscale("log", base=2)
+    ax.set_xlabel(r"query budget $q$ (16-bit digest)")
+    ax.set_ylabel("inversion success")
+    ax.set_ylim(-0.03, 1.05)
+    ax.legend(loc="center left", bbox_to_anchor=(0.0, 0.62))
+    panel_label(ax, "b")
+    fig.tight_layout(w_pad=1.5)
+    fig.savefig(out)
     plt.close(fig)
 
 
-def appendix_rep_cd(path: Path, out_path: Path) -> None:
-    rows = read_csv_rows(path)
-    by_k: dict[int, list[float]] = {}
-    for r in rows:
-        k = to_float(r.get("k"))
-        cd = to_float(r.get("cd_emp"))
-        if np.isfinite(k) and np.isfinite(cd):
-            by_k.setdefault(int(round(k)), []).append(cd)
-
-    ks = sorted(by_k)
-    cds = [float(np.mean(by_k[k])) for k in ks]
-
-    fig, ax = plt.subplots(figsize=(6.0, 4.0))
-    ax.plot(ks, cds, marker="o")
-    ax.set_xlabel(r"Clusters $k$")
-    ax.set_ylabel(r"Empirical CMI $\widehat{I}(X_t;Y_{t+1}\mid Y_t)$")
-    fig.savefig(out_path, bbox_inches="tight")
-    plt.close(fig)
+# ---------------------------------------------------------------- Figure 6
 
 
-def appendix_rep_nll(path: Path, out_path: Path) -> None:
-    rows = read_csv_rows(path)
-    by_k1: dict[int, list[float]] = {}
-    by_k2: dict[int, list[float]] = {}
-    for r in rows:
-        k = to_float(r.get("k"))
-        nll1 = to_float(r.get("nll1"))
-        nll2 = to_float(r.get("nll2"))
-        if np.isfinite(k):
-            kk = int(round(k))
-            if np.isfinite(nll1):
-                by_k1.setdefault(kk, []).append(nll1)
-            if np.isfinite(nll2):
-                by_k2.setdefault(kk, []).append(nll2)
-
-    ks = sorted(set(by_k1) | set(by_k2))
-    n1 = [float(np.mean(by_k1[k])) for k in ks]
-    n2 = [float(np.mean(by_k2[k])) for k in ks]
-
-    fig, ax = plt.subplots(figsize=(6.0, 4.0))
-    ax.plot(ks, n1, marker="o", label=r"order-1 NLL")
-    ax.plot(ks, n2, marker="s", label=r"order-2 NLL")
-    ax.set_xlabel(r"Clusters $k$")
-    ax.set_ylabel("Held-out NLL (nats)")
-    ax.legend(frameon=True)
-    fig.savefig(out_path, bbox_inches="tight")
+def clustering_figure(path: Path, out: Path) -> None:
+    rows = sorted(read_csv(path), key=lambda r: int(r["k"]))
+    k = [int(r["k"]) for r in rows]
+    fig, axes = plt.subplots(1, 2, figsize=(WIDTH, 2.3))
+    ax = axes[0]
+    ax.plot(k, [float(r["cd_emp_raw"]) for r in rows], color=BLUE, marker="o")
+    ax.set_xlabel(r"number of clusters $k$")
+    ax.set_ylabel(r"plug-in $\widehat I(X_t;Y_{t+1}\mid Y_t)$ (nats)")
+    ax.set_xticks(k)
+    ax.set_ylim(bottom=0)
+    panel_label(ax, "a")
+    ax = axes[1]
+    ax.plot(k, [float(r["nll1"]) for r in rows], color=BLUE, marker="o", label="order 1")
+    ax.plot(k, [float(r["nll2"]) for r in rows], color=ORANGE, marker="s", label="order 2")
+    ax.plot(k, np.log(k), color=INK2, linewidth=1.0, label=r"$\log k$ (uniform guess)")
+    ax.set_xlabel(r"number of clusters $k$")
+    ax.set_ylabel("held-out log loss (nats)")
+    ax.set_xticks(k)
+    ax.set_ylim(bottom=0)
+    ax.legend(loc="upper left")
+    panel_label(ax, "b")
+    fig.tight_layout(w_pad=1.5)
+    fig.savefig(out)
     plt.close(fig)
 
 
 def main() -> None:
+    setup_style()
     root = Path(__file__).resolve().parents[1]
     data = root / "data"
     out = root / "figures" / "generated"
-    ensure_dir(out)
-
-    generated = [
-        out / "concept_closure_deficit_schematic.pdf",
-        out / "markov_rm_vs_cd.pdf",
-        out / "markov_cd_vs_heterogeneity.pdf",
-        out / "budget_curve_vs_theory.pdf",
-        out / "hashing_inversion_vs_q_over_2n.pdf",
-        out / "hashing_collision_ratio_by_distribution.pdf",
-        out / "appendix_rep_cd_vs_k.pdf",
-        out / "appendix_rep_nll_vs_k.pdf",
-    ]
-
-    conceptual_schematic(generated[0])
-    markov_rm_vs_cd(data / "markov_metrics.csv", generated[1])
-    markov_cd_vs_heterogeneity(data / "markov_metrics.csv", generated[2])
-    budget_curve(data / "budget_metrics.csv", generated[3])
-    hashing_inversion(data / "hashing_metrics.csv", generated[4])
-    hashing_collision_ratio(data / "hashing_randomness_tests.csv", generated[5])
-    appendix_rep_cd(data / "rep_clustering_metrics.csv", generated[6])
-    appendix_rep_nll(data / "rep_clustering_metrics.csv", generated[7])
-
-    for p in generated:
-        print(p)
+    out.mkdir(parents=True, exist_ok=True)
+    targets = {
+        "fig_concept_closure.pdf": lambda p: concept_figure(p),
+        "fig_markov_rm_cd.pdf": lambda p: markov_rm_cd(data / "markov_metrics.csv", p),
+        "fig_markov_knobs.pdf": lambda p: markov_knobs(data / "markov_metrics.csv", p),
+        "fig_budget.pdf": lambda p: budget_figure(
+            data / "budget_metrics.csv", data / "population_quantities.json", p),
+        "fig_hashing.pdf": lambda p: hashing_figure(data / "hashing_metrics.csv", p),
+        "fig_clustering.pdf": lambda p: clustering_figure(data / "rep_clustering_metrics.csv", p),
+    }
+    for name, build in targets.items():
+        build(out / name)
+        print(out / name)
 
 
 if __name__ == "__main__":

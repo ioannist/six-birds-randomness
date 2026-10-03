@@ -1,27 +1,29 @@
-\section{From Exact Quantity to Computable Diagnostics}\label{sec:diagnostics}
+\section{From the Exact Quantity to Observable Diagnostics}\label{sec:diagnostics}
 
-The quantity $\mathsf{CD}_\tau(\Pi)$ is exact, but one rarely has direct access to the full stationary law of $(X_t,Y_t,Y_{t+\tau})$. In practice, the exact object must be approached through observables that live at different levels of accessibility. This section introduces three such bridges. The first is a route-mismatch diagnostic for coarse-grained Markov dynamics. The second is a predictive-gap proxy based on richer packaged history when the microstate itself is unavailable. The third is a budgeted log-loss formulation that turns randomness into a resource-relative curve. \Cref{tab:diagnostics} summarizes the relation between the exact quantity and the main operational surrogates used in the paper.
+Computing $\mathsf{CD}_\tau(\Pi)$ requires the joint law of the microstate and the packaged future. In applications, one usually has less: an induced macro kernel, a packaged time series, or a predictor of limited size. This section connects the deficit to three such handles, summarized in \Cref{tab:diagnostics}. Each comes with a precise statement of what it does and does not certify.
 
 \begin{table}[tbp]
 \centering
-\caption{The exact quantity used in this paper and the main diagnostics or proxies used to approximate it in practice.}
+\caption{The exact quantity and the three handles used to approach it. Each row names the result in this section that connects it to the deficit.}
 \label{tab:diagnostics}
 \small
 \setlength{\tabcolsep}{5pt}
-\renewcommand{\arraystretch}{1.12}
-\begin{tabularx}{0.98\linewidth}{@{}>{\RaggedRight\arraybackslash}p{0.16\linewidth} >{\RaggedRight\arraybackslash}p{0.35\linewidth} >{\RaggedRight\arraybackslash}X@{}}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{}>{\RaggedRight\arraybackslash}p{0.17\linewidth} >{\RaggedRight\arraybackslash}X >{\RaggedRight\arraybackslash}p{0.30\linewidth}@{}}
 \toprule
-Quantity & Formal role & Operational reading \\
+Quantity & What it measures & Relation to $\mathsf{CD}_\tau(\Pi)$ \\
 \midrule
-$\mathsf{CD}_\tau(\Pi)$ & exact hidden predictive information after conditioning on $Y_t$ & target object \\
-$\mathrm{RM}_\tau^{\mathrm{lift}}(\Pi)$ & stationary-weighted distributional mismatch between micro futures and induced macro rows & computable coarse-graining diagnostic \\
-$\Delta_{\mathrm{pred}}^{(2,1)}$ & extra held-out gain from one additional packaged-history step & macro-history proxy when $X_t$ is unavailable \\
-$\mathsf{Rand}_B(\Pi,\tau)$ & best achievable predictive log loss under feasible class $\mathcal{Q}_B$ & randomness--budget curve \\
+$\mathsf{CD}_\tau(\Pi)$ & information about the next package hidden inside the current one & target (\Cref{def:closure-deficit}) \\
+$\mathrm{RM}_\tau^{\mathrm{stat}}(\Pi)$ & average $\ell_1$ distance between microstate forecasts and package forecasts & $\mathsf{CD}\ge\tfrac12(\mathrm{RM}^{\mathrm{stat}})^2$ (\Cref{prop:rm-lower-bound}) \\
+$H(Y_{t+\tau}\mid Y_t)-H(Y_{t+\tau}\mid S_L)$ & predictive gain from $L$ staged packages of memory & between $0$ and $\mathsf{CD}$ for Markov substrates (\Cref{prop:memory}) \\
+$\mathsf{Rand}_B(\Pi,\tau)$ & best expected log loss within a budgeted predictor class & equals $H(Y_{t+\tau}\mid S^{(B)})$ for a full class (\Cref{prop:budget}) \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Suppose an operational coarse-graining procedure supplies, for each current packaged state $y \in \mathcal{Y}$, an induced packaged row $\widehat p_y^{(\tau,\mathrm{lift})}$ intended to summarize the $\tau$-step packaged future from that macrostate. Following the induced-kernel pipeline of \citeauthor{tsiokos2026pica}, such rows are obtained by choosing a lift on each fiber and then evolving for $\tau$ steps before pushing forward again \citep{tsiokos2026pica}. The associated stationary-weighted route mismatch is
+\subsection{Route mismatch}
+
+Coarse-graining pipelines often summarize a packaging by an induced macro kernel. One chooses a \emph{lift}, a probability distribution over the microstates of each package. One then runs the micro dynamics for $\tau$ steps from that distribution and records the resulting distribution of packages \citep{tsiokos2026pica}. Call the resulting row $\widehat p_y^{(\tau,\mathrm{lift})}$. Its \emph{route mismatch} measures how far the true microstate forecasts are from it:
 \begin{equation}
 \mathrm{RM}_\tau^{\mathrm{lift}}(\Pi)
 :=
@@ -29,13 +31,12 @@ Suppose an operational coarse-graining procedure supplies, for each current pack
 \pi(x)\,
 \bigl\|
 p_x^{(\tau)} - \widehat p_{\Pi(x)}^{(\tau,\mathrm{lift})}
-\bigr\|_1.
+\bigr\|_1 .
 \label{eq:route-mismatch}
 \end{equation}
-When the lift is stationary-conditional, one has $\widehat p_y^{(\tau,\mathrm{lift})}=\bar p_y^{(\tau)}$ for every $y$, and we write the resulting quantity as $\mathrm{RM}_\tau^{\mathrm{stat}}(\Pi)$.
+Two lifts matter here. The \emph{stationary lift} weights the microstates of package $y$ by $\pi(x\mid y)$; by \eqref{eq:fiber-average}, its row is exactly the package forecast $\bar p_y^{(\tau)}$, and we write $\mathrm{RM}_\tau^{\mathrm{stat}}$. The \emph{uniform lift} weights the microstates of each package equally, giving $\mathrm{RM}_\tau^{\mathrm{unif}}$. Both versions average over microstates with the stationary weights $\pi(x)$. Only the macro rows differ.
 
-\begin{proposition}[Route mismatch lower bound]\label{prop:rm-lower-bound}
-If the induced packaged rows coincide with the stationary-conditioned rows, then
+\begin{proposition}[Route-mismatch bound]\label{prop:rm-lower-bound}
 \begin{equation}
 \mathsf{CD}_\tau(\Pi)
 \ge
@@ -45,83 +46,108 @@ If the induced packaged rows coincide with the stationary-conditioned rows, then
 \end{proposition}
 
 \begin{proof}
-By \Cref{prop:cd-kl},
-\[
-\mathsf{CD}_\tau(\Pi)
-=
-\sum_{x \in \mathcal{X}}
-\pi(x)\,
-D_{\mathrm{KL}}\!\bigl(
-p_x^{(\tau)}
-\,\|\,
-\bar p_{\Pi(x)}^{(\tau)}
-\bigr).
-\]
-Pinsker's inequality in natural units gives \citep{cover2006elementsofinformationtheory}
-\[
-D_{\mathrm{KL}}(p\|q)
-\ge
-\frac{1}{2}\|p-q\|_1^2.
-\]
-Therefore
+Pinsker's inequality in nats states that $D_{\mathrm{KL}}(p\|q)\ge\tfrac12\|p-q\|_1^2$ for probability vectors $p,q$ \citep{cover2006elementsofinformationtheory}. Apply it to each term of \eqref{eq:cd-kl}:
 \[
 \mathsf{CD}_\tau(\Pi)
 \ge
-\frac{1}{2}
-\sum_{x \in \mathcal{X}}
-\pi(x)\,
-\bigl\|
-p_x^{(\tau)}-\bar p_{\Pi(x)}^{(\tau)}
-\bigr\|_1^2.
-\]
-Applying Jensen's inequality to the convex map $u \mapsto u^2$ yields
-\[
-\sum_{x \in \mathcal{X}}
-\pi(x)\,
-\bigl\|
-p_x^{(\tau)}-\bar p_{\Pi(x)}^{(\tau)}
-\bigr\|_1^2
+\frac12\sum_{x:\,\pi(x)>0}\pi(x)\,\bigl\|p_x^{(\tau)}-\bar p_{\Pi(x)}^{(\tau)}\bigr\|_1^2
 \ge
-\left(
-\sum_{x \in \mathcal{X}}
-\pi(x)\,
-\bigl\|
-p_x^{(\tau)}-\bar p_{\Pi(x)}^{(\tau)}
-\bigr\|_1
-\right)^2,
+\frac12\Bigl(\sum_{x}\pi(x)\,\bigl\|p_x^{(\tau)}-\bar p_{\Pi(x)}^{(\tau)}\bigr\|_1\Bigr)^2 .
 \]
-which is exactly $\bigl(\mathrm{RM}_\tau^{\mathrm{stat}}(\Pi)\bigr)^2$.
+The second step is Jensen's inequality for the convex map $u\mapsto u^2$ under the probability weights $\pi$; unoccupied states contribute nothing to either side. The last sum is $\mathrm{RM}_\tau^{\mathrm{stat}}(\Pi)$.
 \end{proof}
 
-Thus the exact deficit controls any stationary-conditioned route-mismatch diagnostic. Operational route mismatch need not use the stationary-conditional lift, however. In particular, \emph{To Create a Stone with Six Birds} uses induced macro kernels derived from explicit lift choices, including uniform-in-fiber lifts, as a practical audit of how badly macro rows fail to summarize the micro futures they stand for \citep{tsiokos2026pica}. In the experiments below we report both a stationary version, which targets $\bar p_y^{(\tau)}$ directly, and a uniform version, which measures non-closure relative to a cheaper operational packaging choice.
+In total-variation units, $\|p-q\|_{\mathrm{TV}}=\tfrac12\|p-q\|_1$, the same bound reads $\mathsf{CD}\ge 2\,(\mathrm{RM}^{\mathrm{stat}}_{\mathrm{TV}})^2$. The bound is one-sided: a small deficit forces a small stationary mismatch, but Pinsker's inequality alone gives no upper bound on the deficit in terms of the mismatch. (Entropy-continuity arguments do give such a bound, with a constant that depends on the size of the package alphabet.)
 
-When the microstate is inaccessible but a packaged sequence $y_{1:T}$ is observed, one can still ask whether the current package is sufficient for one more packaged step. Let $\operatorname{NLL}_1$ and $\operatorname{NLL}_2$ denote held-out average negative log-likelihood under first- and second-order Markov predictors on the packaged sequence. Define the predictive gap
-\begin{equation}
-\Delta_{\mathrm{pred}}^{(2,1)}
-:=
-\operatorname{NLL}_1-\operatorname{NLL}_2.
-\label{eq:pred-gap}
-\end{equation}
-In the infinite-data idealization, with exact predictors of the stated orders on the same stationary source, this gap becomes
+\begin{remark}[The uniform lift is not covered]\label{rem:uniform-lift}
+The uniform lift is common in practice because it does not require the stationary law to build the macro rows \citep{tsiokos2026pica}. It does not inherit \Cref{prop:rm-lower-bound}. In the three-state chain of \Cref{ex:uniform-lift}, with a rarely visited microstate, the deficit is about $0.0040$ nats. The uniform-lift mismatch is about $0.500$, so the would-be bound $\tfrac12(\mathrm{RM}^{\mathrm{unif}})^2\approx 0.125$ fails by a factor of thirty. The stationary mismatch, about $0.0020$, satisfies the true bound. The uniform-lift mismatch is still a reasonable \emph{proxy}, and it tracks the deficit closely in our benchmark (\Cref{sec:results-markov}). That agreement is an empirical observation, not a theorem.
+\end{remark}
+
+\subsection{Packaged memory}\label{sec:memory}
+
+Often the microstate is never observed, and only the packaged sequence is available. One can still ask whether remembering earlier packages improves prediction. Write the staged packaged history of length $L\ge1$ as
 \[
-\Delta_{\mathrm{pred}}^{(2,1)}
-=
-I(Y_{t-1};Y_{t+1}\mid Y_t).
+S_L := \bigl(Y_{t-(L-1)\tau},\dots,Y_{t-\tau},Y_t\bigr),
 \]
-A positive gap therefore indicates that one additional unit of packaged history still carries predictive information not stabilized into the current package. This is the predictive non-closure signal used operationally in \emph{To Notch a Stone with Six Birds} \citep{tsiokos2026notch}. It is not identical to the micro-closure deficit: it probes hidden predictive residue inside macro history rather than inside the current microstate. But when omitted micro distinctions persist through the packaged history, the predictive gap becomes a practical proxy for the same underlying failure of closure.
+so that $S_1=Y_t$. The next result shows that, for a Markov substrate, packaged memory can only recover part of the deficit.
 
-This viewpoint leads naturally to a budgeted notion of randomness. Let $\mathcal{Q}_B$ be a feasible predictor class available under budget $B$, and let $S_t^{(B)}$ denote the state summary accessible to that class. Define
+\begin{proposition}[Memory is sandwiched by the deficit]\label{prop:memory}
+Let $(X_t)$ be a stationary Markov chain. For every $L\ge1$,
+\begin{equation}
+H(Y_{t+\tau}\mid X_t)
+\;\le\;
+H(Y_{t+\tau}\mid S_{L+1})
+\;\le\;
+H(Y_{t+\tau}\mid S_L)
+\;\le\;
+H(Y_{t+\tau}\mid Y_t).
+\label{eq:memory-sandwich}
+\end{equation}
+Consequently,
+\begin{equation}
+0
+\;\le\;
+H(Y_{t+\tau}\mid Y_t)-H(Y_{t+\tau}\mid S_L)
+\;\le\;
+\mathsf{CD}_\tau(\Pi).
+\label{eq:memory-gain}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The history $S_L$ is a sub-vector of $S_{L+1}$, and $Y_t$ is a component of $S_L$. Conditioning on more variables cannot increase entropy, which gives the middle and right inequalities. For the left inequality, $S_{L+1}$ is a function of $(X_{t-L\tau},\dots,X_t)$. By the Markov property, $Y_{t+\tau}$ is conditionally independent of $(X_s)_{s<t}$ given $X_t$. Hence $H(Y_{t+\tau}\mid X_t,S_{L+1})=H(Y_{t+\tau}\mid X_t)$, and
+$H(Y_{t+\tau}\mid S_{L+1})\ge H(Y_{t+\tau}\mid X_t,S_{L+1})=H(Y_{t+\tau}\mid X_t)$.
+The bound \eqref{eq:memory-gain} follows by subtracting from $H(Y_{t+\tau}\mid Y_t)$ and using \Cref{prop:cd-decomposition}.
+\end{proof}
+
+Two consequences are worth stating. First, the deficit is a hard ceiling on what any finite window of packaged memory can buy back. The rest is information that the packaged past does not carry. Second, the one-step version gives a clean reading of the predictive-gap diagnostic used in earlier Six Birds work \citep{tsiokos2026notch}.
+
+\begin{corollary}[Population predictive gap]\label{cor:pred-gap}
+For a stationary Markov substrate, the population gap between first- and second-order packaged prediction is
+\[
+\Delta^{(2,1)}
+:=
+H(Y_{t+\tau}\mid Y_t)-H(Y_{t+\tau}\mid Y_{t-\tau},Y_t)
+=
+I(Y_{t-\tau};Y_{t+\tau}\mid Y_t),
+\]
+and it satisfies $0\le\Delta^{(2,1)}\le\mathsf{CD}_\tau(\Pi)$.
+\end{corollary}
+
+\begin{proof}
+The equality is the definition of conditional mutual information. The bounds are \eqref{eq:memory-gain} with $L=2$.
+\end{proof}
+
+A positive population gap therefore certifies a positive deficit. A zero gap does not certify closure, because the hidden distinction may leave no trace in the packaged past. In practice, one computes the difference of held-out average log losses of \emph{fitted} order-one and order-two predictors. That difference estimates the difference of the fitted predictors' risks, which equals $\Delta^{(2,1)}$ plus the difference of their estimation errors (each fitted predictor's average KL divergence from the true conditional law). It approximates $\Delta^{(2,1)}$ when both fits are accurate, and on finite data it can even be negative.
+
+\subsection{Budgeted randomness}
+
+The memory picture suggests pricing randomness by budget. Let $\mathcal{Q}_B$ be the class of predictors available under budget $B$. Each predictor in the class maps a summary $S^{(B)}_t$ of the observable past to a distribution over the next package.
+
+\begin{definition}[Budgeted randomness]\label{def:budgeted-rand}
 \begin{equation}
 \mathsf{Rand}_B(\Pi,\tau)
 :=
 \inf_{Q \in \mathcal{Q}_B}
 \mathbb{E}\!\left[
--\log Q(Y_{t+\tau}\mid S_t^{(B)})
+-\log Q\bigl(Y_{t+\tau}\mid S_t^{(B)}\bigr)
 \right].
 \label{eq:budgeted-rand}
 \end{equation}
-If $\mathcal{Q}_B$ contains all conditional distributions on the same accessible state, then $\mathsf{Rand}_B(\Pi,\tau)=H(Y_{t+\tau}\mid S_t^{(B)})$. As the budget grows and the feasible class expands, $\mathsf{Rand}_B(\Pi,\tau)$ can only decrease. In the simplest case studied later, $B=L$ is packaged memory order and $S_t^{(L)}=(Y_{t-L+1},\dots,Y_t)$. The resulting randomness--budget curve is then the held-out log loss of the best order-$L$ predictor. Extra memory lowers that curve exactly when the current package has failed to absorb distinctions that still matter for its future. At the top end of this scale, access to the exact microstate would reduce the best achievable loss to $H(Y_{t+\tau}\mid X_t)$, leaving only intrinsic substrate uncertainty.
+\end{definition}
 
-Three distinctions are important before turning to data. First, closure deficit is not novelty. A layer can have $\mathsf{CD}_\tau(\Pi)>0$ without forcing a theory extension or a new ontology. Second, closure deficit is not irreversibility. Arrow-of-time audits compare forward and reversed path measures and obey different monotonicity constraints under coarse-graining, whereas route mismatch and predictive gap only register unresolved predictive dependence \citep{tsiokos2026sixbirds,esposito2012stochasticthermodynamicsundercoarsegraining}. Hidden protocol phases or omitted state variables can therefore make a layer look random without certifying any genuine nonequilibrium drive. Third, route mismatch and predictive gap are diagnostics, not replacements for the exact object. They are useful precisely because $\mathsf{CD}_\tau(\Pi)$ is the right target and these observables track different operational shadows of it.
+\begin{proposition}[Properties of budgeted randomness]\label{prop:budget}
+\begin{enumerate}
+\item[(i)] For every $Q$, the expected log loss equals $H(Y_{t+\tau}\mid S^{(B)}_t)$ plus the average KL divergence from the true conditional law to $Q$. Hence $\mathsf{Rand}_B\ge H(Y_{t+\tau}\mid S^{(B)}_t)$, with equality when $\mathcal{Q}_B$ contains every conditional distribution given $S^{(B)}_t$.
+\item[(ii)] Suppose budgets are nested: whenever $B\le B'$, the summary $S^{(B)}_t$ is a function of $S^{(B')}_t$, and every predictor in $\mathcal{Q}_B$, composed with that function, belongs to $\mathcal{Q}_{B'}$. Then $\mathsf{Rand}_{B'}\le\mathsf{Rand}_B$.
+\item[(iii)] For a stationary Markov substrate, with memory budget $B=L$, summary $S^{(L)}_t=S_L$, and full predictor classes, $\mathsf{Rand}_L=H(Y_{t+\tau}\mid S_L)$. This value is nonincreasing in $L$ and lies between $H(Y_{t+\tau}\mid X_t)$ and $H(Y_{t+\tau}\mid Y_t)$.
+\end{enumerate}
+\end{proposition}
 
-With these bridges in place, the remaining sections can move back and forth between the exact quantity and the observables without changing the underlying claim. \Cref{sec:results-markov} uses route mismatch to track known closure deficits in controlled Markov families. \Cref{sec:results-budget} measures $\mathsf{Rand}_B$ directly through held-out log loss under increasing memory order. \Cref{sec:results-hashing} shows the same packaging-and-budget logic in a deterministic many-to-one map.
+\begin{proof}
+(i) is the standard decomposition of log loss into conditional entropy and divergence; the divergence vanishes for the true conditional law. (ii) holds because the infimum for $B'$ is taken over a set that contains a copy of every predictor available at $B$, with the same loss. (iii) combines (i) with \Cref{prop:memory}.
+\end{proof}
+
+Monotonicity in (ii) is a property of nested classes, not of budgets as such. If enlarging the budget removes options, for example by forcing a different summary, the curve can rise. Moreover, $\mathsf{Rand}_B$ is a \emph{population} quantity. The held-out loss of a fitted model estimates that model's risk, which is at least $\mathsf{Rand}_B$ and approaches it only when the fit is accurate; on a finite test set the estimate itself fluctuates. Choosing the best of several fitted models by their test loss produces a curve that decreases by construction. \Cref{sec:results-budget} therefore reports exact population entropies alongside models selected on separate validation data.
+
+\paragraph{What the diagnostics do not measure.} A positive deficit does not imply that a new theory must be born, and it does not certify physical irreversibility. Arrow-of-time diagnostics compare forward and time-reversed path measures and behave differently under coarse-graining \citep{esposito2012stochasticthermodynamicsundercoarsegraining,tsiokos2026sixbirds}. A hidden protocol phase or an omitted variable can make a layer look random without any underlying nonequilibrium drive. Route mismatch and the predictive gap are views of the deficit, not substitutes for it.

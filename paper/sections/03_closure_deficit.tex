@@ -1,34 +1,44 @@
-\section{Closure Deficit and the Exact Decomposition}\label{sec:closure}
+\section{The Closure Deficit}\label{sec:closure}
 
-For each microstate $x \in \mathcal{X}$, define the packaged $\tau$-step future distribution
+\subsection{Two forecasts of the next package}
+
+Fix a packaging $\Pi$ and a lag $\tau$. There are two natural forecasts of the next package. The first uses the current microstate:
 \begin{equation}
 p_x^{(\tau)}(y') := \Pr(Y_{t+\tau}=y' \mid X_t=x),
 \qquad y' \in \mathcal{Y}.
 \label{eq:micro-future}
 \end{equation}
-For each packaged state $y \in \mathcal{Y}$, define the packaged future conditioned only on the current package by
+For a Markov substrate, this is the $\Pi$-image of row $x$ of $P^\tau$, namely $p_x^{(\tau)}(y')=\sum_{x':\Pi(x')=y'}(P^\tau)(x,x')$, and it is defined for every $x$. For a general stationary process, it is defined for occupied $x$. The second forecast uses only the current package:
 \begin{equation}
-\bar p_y^{(\tau)}(y') := \Pr(Y_{t+\tau}=y' \mid Y_t=y).
+\bar p_y^{(\tau)}(y') := \Pr(Y_{t+\tau}=y' \mid Y_t=y),
+\qquad y \text{ occupied}.
 \label{eq:macro-future}
 \end{equation}
-Under the stationary micro law $\pi$, the latter is the fiber-average of the former:
+Because $Y_t$ is a function of $X_t$, the package forecast is the stationary-weighted average of the microstate forecasts in its fiber:
 \begin{equation}
-\bar p_y^{(\tau)}(\cdot)
+\bar p_y^{(\tau)}
 =
 \sum_{x \in \Pi^{-1}(y)}
-\pi(x \mid y)\, p_x^{(\tau)}(\cdot).
+\pi(x \mid y)\, p_x^{(\tau)},
+\qquad
+\pi(x \mid y) := \frac{\pi(x)}{\pi_Y(y)},
+\quad
+\pi_Y(y) := \sum_{x:\Pi(x)=y}\pi(x).
 \label{eq:fiber-average}
 \end{equation}
-Here
-\[
-\pi(x \mid y) := \frac{\pi(x)}{\pi_Y(y)},
-\qquad
-\pi_Y(y) := \sum_{x:\Pi(x)=y}\pi(x),
-\]
-whenever $\pi_Y(y)>0$; packaged states with $\pi_Y(y)=0$ do not contribute under the stationary law. The issue of closure is exactly whether conditioning on $Y_t$ alone loses predictive information relative to conditioning on $X_t$.
+Only occupied microstates carry weight in this average. Unoccupied packages never occur under the stationary law and play no role below. \Cref{fig:concept-cd} shows the two cases that matter. Either every microstate in a package has the same forecast, and the package loses nothing, or the forecasts differ, and the package forecast is a blur of them.
+
+\begin{figure}[tbp]
+\centering
+\includegraphics[width=\linewidth]{fig_concept_closure}
+\caption{What a package forgets. Each blue bar chart shows the distribution of the next package (A, B, or C) given one of three microstates $x_1,x_2,x_3$ inside the same package $y$; the orange chart is the package forecast $\bar p_y$, their average weighted by the stationary probabilities $\pi$. (a)~All microstates predict the same future, so the package forecast loses nothing and the closure deficit is zero. (b)~The microstates predict different futures. Someone who sees only the package must use the blurred forecast $\bar p_y$, and the closure deficit is the average KL divergence between the blue rows and the orange one.}
+\label{fig:concept-cd}
+\end{figure}
+
+\subsection{Definition and exact decomposition}
 
 \begin{definition}[Micro-closure deficit]\label{def:closure-deficit}
-Given a packaging $\Pi : \mathcal{X}\to\mathcal{Y}$ and a staging scale $\tau$, the \emph{micro-closure deficit} is
+For a packaging $\Pi:\mathcal{X}\to\mathcal{Y}$ and lag $\tau$, the \emph{micro-closure deficit} is
 \begin{equation}
 \mathsf{CD}_\tau(\Pi)
 :=
@@ -37,7 +47,7 @@ I(X_t; Y_{t+\tau} \mid Y_t).
 \end{equation}
 \end{definition}
 
-The conditioning on $Y_t$ is essential. The quantity $\mathsf{CD}_\tau(\Pi)$ is not the absolute dependence of the next packaged state on the current microstate. It is the \emph{extra} predictive information left in $X_t$ once the current packaged state is already known. In other words, it measures exactly how much of the next packaged outcome remains hidden inside the current macro-object.
+The conditioning on $Y_t$ is what makes this the right quantity. We do not ask how much the microstate says about the future in total. We ask how much it says \emph{beyond} what the package already says. That surplus is what an observer of packages cannot access.
 
 \begin{proposition}[Exact decomposition]\label{prop:cd-decomposition}
 Under the stationary law of $(X_t,Y_t,Y_{t+\tau})$,
@@ -52,74 +62,82 @@ H(Y_{t+\tau}\mid X_t)
 \end{proposition}
 
 \begin{proof}
-By the chain-rule identity for conditional mutual information,
-\[
-I(X_t;Y_{t+\tau}\mid Y_t)
-=
-H(Y_{t+\tau}\mid Y_t)
--
-H(Y_{t+\tau}\mid X_t,Y_t).
-\]
-Since $Y_t=\Pi(X_t)$ is a deterministic function of $X_t$, conditioning on $Y_t$ adds nothing once $X_t$ is known, so
-\[
-H(Y_{t+\tau}\mid X_t,Y_t)=H(Y_{t+\tau}\mid X_t).
-\]
-Substituting into the first display gives \eqref{eq:cd-decomposition}.
+By definition of conditional mutual information,
+$I(X_t;Y_{t+\tau}\mid Y_t)=H(Y_{t+\tau}\mid Y_t)-H(Y_{t+\tau}\mid X_t,Y_t)$.
+Since $Y_t=\Pi(X_t)$ is a function of $X_t$, conditioning on the pair $(X_t,Y_t)$ is the same as conditioning on $X_t$, so $H(Y_{t+\tau}\mid X_t,Y_t)=H(Y_{t+\tau}\mid X_t)$.
 \end{proof}
 
-\Cref{fig:concept-cd} summarizes the decomposition schematically.
+The proof uses only that $Y_t$ is a function of $X_t$. Neither stationarity nor the Markov property is needed for the identity itself.
 
-\begin{figure}[tbp]
-\centering
-\includegraphics[width=0.85\linewidth]{concept_closure_deficit_schematic}
-\caption{Schematic of the closure-deficit decomposition. Access to the current microstate $X_t$ leaves only intrinsic packaged uncertainty $H(Y_{t+\tau}\mid X_t)$, while prediction from the current packaged state $Y_t=\Pi(X_t)$ incurs the additional deficit $\mathsf{CD}_\tau(\Pi)$ when the package is not yet sufficient for its own future.}
-\label{fig:concept-cd}
-\end{figure}
+The two terms answer different questions. The \emph{intrinsic term} $H(Y_{t+\tau}\mid X_t)$ is the uncertainty about the next package that remains for someone who knows the current microstate exactly. The deficit is the additional uncertainty that comes from knowing only the package. If the next package is a deterministic function of the current microstate, as in deterministic dynamics, the intrinsic term is zero and all packaged uncertainty is deficit.
 
-The two terms in \eqref{eq:cd-decomposition} have different meanings. The term $H(Y_{t+\tau}\mid X_t)$ measures what remains unpredictable about the future packaged outcome even with exact access to the current microstate. It captures genuine substrate uncertainty propagated to the packaged level. The term $\mathsf{CD}_\tau(\Pi)$ measures something else: the unpredictability created by refusing or failing to retain micro distinctions that still matter once the current package is fixed. In deterministic substrates the intrinsic term vanishes, so all packaged randomness comes from non-closure.
+\begin{remark}[What ``intrinsic'' means]\label{rem:intrinsic}
+The intrinsic term is defined relative to $X_t$. When $X_t$ is a sufficient state for the future, as for a Markov chain, no record of earlier states can reduce it further, and it is fair to call it substrate noise. For a general stationary process, a longer microstate history might predict better, and the intrinsic term should be read as ``uncertainty given the current microstate'' and nothing more.
+\end{remark}
+
+\subsection{The deficit as an average divergence}
 
 \begin{proposition}[Expected KL form]\label{prop:cd-kl}
-The micro-closure deficit can be written as
+The closure deficit is the stationary average, over occupied microstates, of the divergence between each microstate forecast and its package forecast:
 \begin{equation}
 \mathsf{CD}_\tau(\Pi)
 =
-\sum_{x \in \mathcal{X}}
+\sum_{x:\,\pi(x)>0}
 \pi(x)\,
 D_{\mathrm{KL}}\!\bigl(
 p_x^{(\tau)}
-\,\|\,
+\,\big\|\,
 \bar p_{\Pi(x)}^{(\tau)}
 \bigr),
+\qquad
+D_{\mathrm{KL}}(p\|q) := \sum_{y'} p(y') \log \frac{p(y')}{q(y')},
 \label{eq:cd-kl}
 \end{equation}
-where, in the finite case,
-\[
-D_{\mathrm{KL}}(p\|q) := \sum_{y' \in \mathcal{Y}} p(y') \log \frac{p(y')}{q(y')},
-\]
-with the convention $0 \log (0/q)=0$.
+with the convention $0\log(0/q)=0$. Every divergence in the sum is finite. Equivalently, the sum may run over all $x$, with the convention that terms with $\pi(x)=0$ contribute zero.
 \end{proposition}
 
 \begin{proof}
-Conditional mutual information is the expectation of the Kullback--Leibler divergence between the conditional law of $Y_{t+\tau}$ given $(X_t,Y_t)$ and the conditional law of $Y_{t+\tau}$ given $Y_t$ alone. Because $Y_t$ is determined by $X_t$, the first law is exactly $p_x^{(\tau)}$ and the second is $\bar p_{\Pi(x)}^{(\tau)}$. Averaging these divergences under the stationary law $\pi$ yields \eqref{eq:cd-kl}.
+Conditional mutual information is the average, over the conditioning variables, of the KL divergence between the conditional law of $Y_{t+\tau}$ given $(X_t,Y_t)$ and its conditional law given $Y_t$ alone. Because $Y_t=\Pi(X_t)$, the pair $(X_t,Y_t)$ takes the value $(x,\Pi(x))$ with probability $\pi(x)$. The two conditional laws are then $p_x^{(\tau)}$ and $\bar p_{\Pi(x)}^{(\tau)}$. For finiteness, fix an occupied $x$ and let $w_x=\pi(x\mid\Pi(x))>0$. By \eqref{eq:fiber-average}, $\bar p_{\Pi(x)}^{(\tau)}\ge w_x\,p_x^{(\tau)}$ pointwise, so $p_x^{(\tau)}$ is absolutely continuous with respect to $\bar p_{\Pi(x)}^{(\tau)}$, and the divergence is at most $-\log w_x$.
 \end{proof}
 
+The restriction to occupied microstates is not cosmetic. An unoccupied microstate can have a forecast that shares no support with its package forecast, and then its divergence is infinite. That state has zero weight, however, and its forecast is irrelevant to the stationary law. Reading the sum as running over occupied states avoids the undefined product $0\cdot\infty$.
+
+The bound in the proof also yields simple ceilings. Averaging $-\log w_x$ gives $\mathsf{CD}_\tau(\Pi)\le H(X_t\mid Y_t)$, and \eqref{eq:cd-decomposition} gives $\mathsf{CD}_\tau(\Pi)\le H(Y_{t+\tau}\mid Y_t)$. A package cannot hide more predictive information than it hides information about the microstate.
+
+\subsection{Closure and zero deficit}
+
 \begin{definition}[$\tau$-closed packaging]\label{def:tau-closed}
-A packaging $\Pi$ is \emph{$\tau$-closed} if for every $x,x' \in \mathcal{X}$ with $\Pi(x)=\Pi(x')$, one has
+For a Markov substrate, a packaging $\Pi$ is \emph{$\tau$-closed} if microstates in the same fiber have the same package forecast:
 \begin{equation}
+\Pi(x)=\Pi(x')
+\;\Longrightarrow\;
 p_x^{(\tau)} = p_{x'}^{(\tau)}
-\quad\text{as distributions on }\mathcal{Y}.
+\qquad\text{for all } x,x'\in\mathcal{X}.
 \label{eq:tau-closed}
 \end{equation}
 \end{definition}
 
+At $\tau=1$, this is the classical \emph{strong lumpability} of $P$ with respect to the partition into fibers \citep{kemeny1976finitemarkovchains,buchholz1994exactordinarylumpability}. At general $\tau$, it is strong lumpability of $P^\tau$.
+
 \begin{proposition}[Closure, sufficiency, and vanishing deficit]\label{prop:cd-zero}
-If $\Pi$ is $\tau$-closed, then $\mathsf{CD}_\tau(\Pi)=0$. Conversely, if $\pi(x)>0$ for every $x \in \mathcal{X}$ and $\mathsf{CD}_\tau(\Pi)=0$, then $\Pi$ is $\tau$-closed.
+For a Markov substrate:
+\begin{enumerate}
+\item[(i)] If $\Pi$ is $\tau$-closed, then $\mathsf{CD}_\tau(\Pi)=0$.
+\item[(ii)] $\mathsf{CD}_\tau(\Pi)=0$ if and only if all \emph{occupied} microstates in each fiber have the same forecast.
+\item[(iii)] If $\pi(x)>0$ for every $x\in\mathcal{X}$, then $\mathsf{CD}_\tau(\Pi)=0$ if and only if $\Pi$ is $\tau$-closed.
+\end{enumerate}
 \end{proposition}
 
 \begin{proof}
-If $\Pi$ is $\tau$-closed, then all microstates inside the same fiber have the same packaged future distribution, so for every $x$ one has $p_x^{(\tau)}=\bar p_{\Pi(x)}^{(\tau)}$. Every divergence in \eqref{eq:cd-kl} is therefore zero, and thus $\mathsf{CD}_\tau(\Pi)=0$.
-
-Conversely, assume $\pi(x)>0$ for all $x$ and $\mathsf{CD}_\tau(\Pi)=0$. By \eqref{eq:cd-kl}, a weighted sum of nonnegative KL divergences is zero. Since every weight $\pi(x)$ is positive, each divergence must itself be zero. Hence $p_x^{(\tau)}=\bar p_{\Pi(x)}^{(\tau)}$ for every $x$. If $\Pi(x)=\Pi(x')$, then both $p_x^{(\tau)}$ and $p_{x'}^{(\tau)}$ equal the same $\bar p_{\Pi(x)}^{(\tau)}$, so $p_x^{(\tau)}=p_{x'}^{(\tau)}$. Thus $\Pi$ is $\tau$-closed.
+By \Cref{prop:cd-kl}, the deficit is a sum of nonnegative terms $\pi(x)D_{\mathrm{KL}}(p_x^{(\tau)}\|\bar p_{\Pi(x)}^{(\tau)})$ over occupied $x$. It is zero exactly when every such divergence is zero, that is, when $p_x^{(\tau)}=\bar p_{\Pi(x)}^{(\tau)}$ for every occupied $x$. If all occupied forecasts in a fiber are equal, their weighted average equals each of them. Conversely, if each occupied forecast equals the average, they are all equal to one another. This proves (ii). Part (i) follows, because closure makes all forecasts in a fiber equal, occupied or not. Part (iii) follows from (ii), because under full support every microstate is occupied.
 \end{proof}
 
-The last proposition is the formal version of the paper's slogan. A packaged state looks random exactly to the extent that it has failed to become a sufficient statistic for its own packaged future. In finite Markov settings, $\tau$-closedness at $\tau=1$ is the classical lumpability condition stated in terms of packaged destination distributions; for $\tau>1$ it is the same condition after staging by $\tau$ \citep{kemeny1976finitemarkovchains,buchholz1994exactordinarylumpability}. This is why closure deficit is the right exact object for the rest of the paper: it vanishes precisely when the current package already carries everything the layer needs for one staged step of prediction, and it becomes strictly positive exactly when hidden within-fiber distinctions remain unpaid for.
+This proposition is the formal version of the paper's slogan. A package looks random beyond the intrinsic noise exactly to the extent that it is not a sufficient statistic for its own future. In our benchmark chains, every transition probability is positive, so the stationary law has full support and part (iii) applies.
+
+\begin{remark}[Full support cannot be dropped]\label{rem:support}
+Part (iii) fails without full support. In the three-state chain of \Cref{app:counterexamples} (\Cref{ex:null-state}), the deficit is zero because the only occupied microstate in a fiber agrees with itself. An unoccupied microstate in the same fiber nevertheless has a different forecast, so the packaging is not $1$-closed. A zero deficit certifies closure on the states the process actually visits, not on all states.
+\end{remark}
+
+\begin{remark}[Lag and refinement]\label{rem:nonmonotone}
+It is tempting to expect a longer lag $\tau$, or a finer packaging, always to reduce the deficit. Neither holds in general. On a deterministic four-cycle (\Cref{ex:four-cycle}), splitting the states into two packages of two gives deficits $\log 2$, $0$, and $\log 2$ at lags $1$, $2$, and $3$, while the trivial one-package description has deficit zero. Refining a packaging also changes the variable being predicted, so it is not the same as conditioning on more information. Whether a given packaging is closed is a property of that packaging at that lag.
+\end{remark}

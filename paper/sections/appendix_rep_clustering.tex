@@ -1,29 +1,24 @@
-\section{Auxiliary Clustering Result}\label{app:aux-rep}
+\section{Auxiliary Clustering Experiment}\label{app:aux-rep}
 
-This appendix records the representation-learning result that we treat as auxiliary rather than core evidence \citep{tishby1999bottleneck,geiger2015optimalkullbackleibleraggregation}. The experiment asks whether increasing representational budget, measured by the number of learned clusters $k$, automatically reduces predictive non-closure when packaging is learned from observations rather than supplied by construction. It does not.
+This appendix records a representation-learning experiment that we treat as descriptive rather than as core evidence \citep{tishby1999bottleneck,geiger2015optimalkullbackleibleraggregation}. It asks what happens when the packaging is learned from noisy observations instead of being given.
 
-We generate observation sequences from the hidden-type process used earlier and learn $k$-means partitions on those observations for $k \in \{2,4,8\}$ \citep{macqueen1967somemethods}. For each learned packaging we then evaluate the resulting packaged sequence by held-out first- and second-order predictive log loss and by the empirical conditional mutual information
+\paragraph{Design.} We simulate $3{,}000$ steps of the hidden-type chain used in the budget benchmark (\Cref{sec:results-budget}), after a burn-in of $200$ steps. Each microstate emits a four-dimensional Gaussian observation whose mean depends mostly on its true package, with a small microstate-specific offset. We fit $k$-means \citep{macqueen1967somemethods} with $k\in\{2,4,8\}$ to the observations in the first half of the sequence and label every step with its nearest cluster. That label sequence is the learned packaging $Y_t$. First- and second-order count predictors are fitted to the labels in the first half and scored on the second half, using the same $1{,}498$ targets for both orders. Finally, we compute the plug-in estimate
 \[
-\widehat I(X_t;Y_{t+1}\mid Y_t),
+\widehat I(X_t;Y_{t+1}\mid Y_t)=\widehat H(Y_{t+1}\mid Y_t)-\widehat H(Y_{t+1}\mid X_t,Y_t)
 \]
-computed from the joint sequence of hidden microstates and learned packaged labels. In this appendix we report the \emph{raw} empirical conditional mutual information, not the normalized version used only for diagnostics during development.
+from transition counts over the whole sequence, where $X_t$ is the true hidden microstate.
 
-The resulting trend is a useful caution. As $k$ increases from $2$ to $8$, the empirical closure deficit rises from $0.0782$ to $0.1356$ and then to $0.1579$ rather than falling. Held-out first-order predictive loss rises in the same direction, from $0.626$ to $1.307$ and then to $2.005$. Second-order predictive loss likewise worsens, from $0.628$ to $1.318$ and then to $2.837$. \Cref{fig:appendix-rep-cd,fig:appendix-rep-nll} summarize the pattern.
+Two features distinguish this setting from the main text. First, the labels come from noisy observations, so $Y_t$ is not a function of $X_t$. The second entropy above therefore conditions on $(X_t,Y_t)$, and the decomposition of \Cref{prop:cd-decomposition} does not apply. Second, the estimate is a raw plug-in statistic. Its upward bias grows with the number of contexts and outcomes, here $8k$ contexts and $k$ outcomes estimated from $2{,}999$ transitions.
 
-\begin{figure}[tbp]
-\centering
-\includegraphics[width=0.85\linewidth]{appendix_rep_cd_vs_k}
-\caption{Auxiliary clustering result: raw empirical closure deficit versus learned cluster count $k$. Increasing representational granularity does not reduce non-closure in this run; it increases it.}
-\label{fig:appendix-rep-cd}
-\end{figure}
+\paragraph{Results.} As $k$ increases from $2$ to $4$ to $8$, the plug-in estimate rises from $0.078$ to $0.136$ to $0.158$ nats (\Cref{fig:appendix-rep}a). Held-out log loss rises too (\Cref{fig:appendix-rep}b): from $0.626$ to $1.307$ to $2.005$ nats for order one, and from $0.628$ to $1.318$ to $2.837$ for order two.
 
 \begin{figure}[tbp]
 \centering
-\includegraphics[width=0.85\linewidth]{appendix_rep_nll_vs_k}
-\caption{Auxiliary clustering result: held-out packaged predictive loss versus learned cluster count $k$. Both first- and second-order losses worsen as the learned partition becomes more finely split.}
-\label{fig:appendix-rep-nll}
+\includegraphics[width=\linewidth]{fig_clustering}
+\caption{Auxiliary clustering experiment. (a)~Plug-in estimate of $\widehat I(X_t;Y_{t+1}\mid Y_t)$ for learned $k$-means packagings. (b)~Held-out log loss of first- and second-order predictors on the learned labels, with the uniform-guess loss $\log k$ for scale. Because the predicted alphabet grows with $k$, losses at different $k$ are not directly comparable.}
+\label{fig:appendix-rep}
 \end{figure}
 
-The lesson is not that the closure-deficit account fails outside controlled partitions. The lesson is that more representational bins are not automatically the same thing as better packaging. A learned partition only helps if it closes distinctions that matter for the staged dynamics. If the partition instead slices the observations in a way that is misaligned with the predictive structure, additional representational budget can make the packaged process harder rather than easier to predict. This is why the result is auxiliary: it is informative about misaligned packaging, but it is not needed for the paper's main evidentiary arc.
+\paragraph{Interpretation.} These trends should be read with care. The rising loss mostly reflects the growing alphabet: predicting one of eight labels is harder than predicting one of two, and the order-one loss stays $0.07$ to $0.08$ nats below the uniform-guess value $\log k$ at every $k$. The order-two loss at $k=8$ exceeds $\log 8$, a sign of overfitting $64$ contexts with $1{,}500$ training steps. The rising plug-in estimate is consistent with learned clusters that split the data in ways the dynamics do not respect. Plug-in bias, which also grows with $k$, could contribute to it as well, and this experiment does not separate the two. The conclusion we draw is therefore modest. More clusters did not reduce the estimated deficit here. That more refinement need not help is established exactly by \Cref{ex:four-cycle}, not by this experiment.
 
-For the same reason, we do not use the exploratory neural bottleneck runs as evidence. In those runs the learned code usage collapsed below the nominal category count, so they do not provide a clean same-budget comparison to the clustering baseline. The controlled Markov, budgeted-prediction, and hashing demonstrations are therefore the proper basis of the main claims.
+We also ran exploratory neural bottleneck encoders. In those runs, the learned codes used fewer categories than their nominal size, so they do not give a clean comparison at equal budget. We do not use them as evidence.

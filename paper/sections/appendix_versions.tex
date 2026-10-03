@@ -1,0 +1,14 @@
+\section{Version History}\label{app:versions}
+
+\paragraph{v2 (October 3, 2026).} This version follows a mathematical and implementation review of the companion code and Lean development. The four propositions of v1 (exact decomposition, expected KL form, closure criterion, and route-mismatch bound) are unchanged in strength. Their statements now say explicitly how unoccupied microstates are handled. The main changes are as follows.
+\begin{itemize}
+\item \emph{Mathematics.} The expected KL form sums over occupied microstates and notes that each term is finite. The closure criterion adds a characterization of zero deficit without full support. New results: the memory bound (\Cref{prop:memory}), its predictive-gap corollary, and the properties of budgeted randomness for nested predictor classes (\Cref{prop:budget}). New counterexamples (\Cref{app:counterexamples}) cover support, the uniform lift, and non-monotonicity in lag and refinement.
+\item \emph{Numerics.} The code now excludes unoccupied states from the KL sum. It uses a residual-checked stationary-law solver, aligns prediction targets across model orders, and checks predictors as probability laws without capping losses. The Markov benchmark's deficit values reproduce v1 to within $2\times10^{-16}$. The hashing success rates are unchanged.
+\item \emph{Budget benchmark.} Model orders are now selected on a separate validation set and scored on untouched test data. Exact population entropies are reported, and the chain is identified as distinct from the sweep's hidden-type chain. In v1, the budget curve was the best test loss among fitted orders and was read as saturating once the predictive structure was exhausted. The population entropies show that further structure remains.
+\item \emph{Hashing.} The reference success probability now includes the chance of querying the target itself, and success is defined as finding any preimage.
+\item \emph{Clustering.} The experiment is presented as a descriptive plug-in statistic, with its bias and alphabet caveats stated. Its estimated deficits are unchanged, and its losses shifted by at most $3\times10^{-4}$ nats after target alignment.
+\item \emph{Lean.} Seven theorems were added: integrable and finite-space KL bridges, and weighted zero criteria. The appendix explains why the original real-valued identity needs them for a faithful reading.
+\item \emph{Presentation.} The abstract and text were rewritten for readability, and the figures were redrawn. Cost claims for route mismatch and a general claim about staging were removed.
+\end{itemize}
+
+\paragraph{v1 (March 9, 2026).} Initial release.

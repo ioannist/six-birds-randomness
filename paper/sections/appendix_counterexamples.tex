@@ -1,0 +1,37 @@
+\section{Three Finite Counterexamples}\label{app:counterexamples}
+
+The examples below are exact finite constructions. Each shows that a hypothesis in the main text cannot be dropped. Microstates are numbered $1,2,\dots$, and packages are named $a,b$. Each example is also checked numerically by a regression test in the companion repository.
+
+\begin{example}[Zero deficit without closure]\label{ex:null-state}
+Take three microstates with transition matrix and packaging
+\[
+P=\begin{pmatrix}1&0&0\\0&1&0\\1&0&0\end{pmatrix},
+\qquad
+\Pi(1)=a,\quad \Pi(2)=\Pi(3)=b,
+\]
+and the stationary law $\pi=(0,1,0)$. One checks that $\pi P=\pi$. The chain is reducible, and this is one of its stationary laws. Microstate $2$ stays at $2$, so its forecast is $p_2=\delta_b$. Microstate $3$ moves to $1$, so $p_3=\delta_a$. Package $b$ is occupied only through state $2$, so $\bar p_b=\delta_b$, and \eqref{eq:cd-kl} gives $\mathsf{CD}_1(\Pi)=\pi(2)\,D_{\mathrm{KL}}(\delta_b\|\delta_b)=0$. Yet $p_2\ne p_3$, so $\Pi$ is not $1$-closed. The unoccupied state $3$ even has $D_{\mathrm{KL}}(p_3\|\bar p_b)=\infty$, which is why \Cref{prop:cd-kl} sums over occupied states only. This is the situation excluded by the full-support hypothesis of \Cref{prop:cd-zero}(iii).
+\end{example}
+
+\begin{example}[The uniform lift has no Pinsker bound]\label{ex:uniform-lift}
+Fix $0<e<1$ and set
+\[
+P=\begin{pmatrix}1-e&e&0\\0&1-e&e\\1&0&0\end{pmatrix},
+\qquad
+\Pi(1)=a,\quad \Pi(2)=\Pi(3)=b .
+\]
+The stationary law is $\pi=(1,1,e)/(2+e)$, which has full support. The forecasts are $p_1=(1-e,e)$, $p_2=(0,1)$, and $p_3=(1,0)$, written as probabilities of $(a,b)$. Within package $b$, the stationary weights are $1/(1+e)$ and $e/(1+e)$, so $\bar p_b=(e,1)/(1+e)$. Package $a$ contains one state and contributes nothing. Hence
+\[
+\mathsf{CD}_1(\Pi)=\frac{\log(1+e)+e\log\frac{1+e}{e}}{2+e}=\frac{(1+e)\log(1+e)-e\log e}{2+e}.
+\]
+The stationary mismatch is $\mathrm{RM}^{\mathrm{stat}}_1=\frac{4e}{(1+e)(2+e)}$. The uniform lift gives package $b$ the row $(\tfrac12,\tfrac12)$, at $\ell_1$ distance $1$ from both $p_2$ and $p_3$, so $\mathrm{RM}^{\mathrm{unif}}_1=\frac{1+e}{2+e}\ge\frac12$. For $e=10^{-3}$, using $\log(1+e)\le e$ and $\log 1000<7$, the deficit is below $0.006$, whereas $\tfrac12(\mathrm{RM}^{\mathrm{unif}}_1)^2\ge\tfrac18$. Numerically, $\mathsf{CD}_1\approx0.00395$, $\mathrm{RM}^{\mathrm{unif}}_1\approx0.50025$, and $\mathrm{RM}^{\mathrm{stat}}_1\approx0.00200$. The stationary bound holds, and the uniform one fails. The uniform lift gives the rarely visited microstate $3$ half the weight of its fiber, whereas the stationary law gives it a fraction $e/(1+e)$.
+\end{example}
+
+\begin{example}[Lag and refinement are not monotone]\label{ex:four-cycle}
+Let four microstates rotate deterministically, $1\to2\to3\to4\to1$, with the uniform stationary law. Package them as $\Pi(1)=\Pi(2)=a$ and $\Pi(3)=\Pi(4)=b$. Every forecast is a point mass, so the intrinsic term is zero at every lag, and the deficit equals $H(Y_{t+\tau}\mid Y_t)$.
+\begin{itemize}
+\item At $\tau=1$: from $a$, state $1$ goes to $a$ and state $2$ to $b$, each with weight $\tfrac12$. The next package is a fair coin given the current one, so $\mathsf{CD}_1=\log2$.
+\item At $\tau=2$: both states of $a$ land in $b$, and both states of $b$ land in $a$, so $\mathsf{CD}_2=0$.
+\item At $\tau=3$: the situation of $\tau=1$ recurs, and $\mathsf{CD}_3=\log2$.
+\end{itemize}
+The coarser packaging with a single package has deficit zero at every lag, because its future is constant. Refining it to $\{a,b\}$ raises the lag-one deficit from $0$ to $\log2$. The packaging is $2$-closed but not $3$-closed.
+\end{example}

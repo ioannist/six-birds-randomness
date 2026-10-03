@@ -26,3 +26,6 @@ paper/build/
 *.out
 *.synctex.gz
 *.toc
+
+# Zenodo submission state and upload artifacts (kept local)
+paper/submission/

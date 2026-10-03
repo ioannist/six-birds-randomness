@@ -1,42 +1,85 @@
-\subsection{Budgeted Prediction}\label{sec:results-budget}
+\subsection{Buying back hidden distinctions with memory}\label{sec:results-budget}
 
-The controlled Markov benchmark established what unresolved closure is. The complementary question is what it costs to buy the missing distinctions back once the current package has already failed to stabilize them. To expose that accounting side directly, we fix the strongest hidden-type benchmark and measure the budgeted randomness curve $\mathsf{Rand}_B$ empirically using packaged predictors of increasing memory order.
+The Markov benchmark shows what non-closure is. The budget benchmark asks what it costs to undo. If an observer sees only packages but may remember more of them, how much of the deficit can memory recover?
 
-The empirical curve is reported in the feasible-class sense of \eqref{eq:budgeted-rand}: at budget $B=L$, we plot the best held-out log loss available among predictors of order at most $L$. This matters because sparse higher-order contexts can make the raw loss of a particular order-$L$ fit fluctuate upward in finite data, whereas the feasible-class quantity itself should never worsen when the admissible predictor class strictly expands.
+\paragraph{Design.} We use a hidden-type chain with strength $s=0.9$. It has the same family parameters as the strongest hidden-type condition above but a different random seed, so it is a different kernel with its own exact quantities. For this chain, $H(Y_{t+1}\mid Y_t)=1.0495$ nats, $H(Y_{t+1}\mid X_t)=0.9396$ nats, and therefore $\mathsf{CD}_1=0.1100$ nats. We compute the population entropies $H(Y_{t+1}\mid S_L)$ exactly, by enumerating all packaged histories of length $L$ under the known chain. We also simulate $10{,}000$ packaged steps after a burn-in of $1{,}000$. The first half trains count-based predictors of memory order $L=0,\dots,5$ (order $0$ ignores the past). The next quarter is a validation set, and the last quarter is the test set. For each budget $L$, we pick the order $\le L$ with the lowest validation loss and report its test loss. All orders are scored on the same $2{,}495$ targets in each set.
 
-In the frozen run, the order-$0$ baseline is $1.09565$ nats. Allowing one packaged step of memory lowers the held-out loss to $1.04394$, a gain of $5.17\times 10^{-2}$ nats. Allowing two packaged steps lowers it again to $1.03855$, buying back an additional $5.38\times 10^{-3}$ nats. Beyond that point the feasible-class curve saturates through orders $3$, $4$, and $5$, indicating that the hidden predictive residue visible to this sequence has been exhausted at the present sample size. The exact packaged first-order benchmark for the same process is $H(Y_{t+1}\mid Y_t)=1.04953$, so the order-$1$ held-out estimate sits within $5.60\times 10^{-3}$ nats of the theoretical line, while the best order-$\le 2$ predictor improves on that baseline by $1.10\times 10^{-2}$ nats. \Cref{fig:budget-curve} shows the resulting randomness--budget curve.
+\paragraph{Population result.} \Cref{fig:budget}(a) and \Cref{tab:budget} show the exact staircase. Knowing the current package lowers the loss from $1.0970$ to $1.0495$ nats. That step is the value of the package itself. Memory beyond the current package then helps, but only a little. One more package gains $0.0051$ nats, a third gains another $0.0024$, and later gains are tiny: through order eight, packaged history recovers $0.0078$ nats in total, about $7\%$ of the deficit. The remaining $0.102$ nats of deficit is not recovered by any window of up to eight past packages, and the gains are already negligible by then: a ninth package adds about $10^{-8}$ nats. Access to the microstate would attain the intrinsic floor. This is \Cref{prop:memory} in action. Memory can buy back hidden distinctions only to the extent that they leave traces in the packaged past.
+
+\begin{table}[tbp]
+\centering
+\caption{Budget benchmark. Population entropies are exact. Test losses are averages over $2{,}495$ held-out targets. The validation-selected model at budget $L$ is the order $\le L$ with the lowest validation loss.}
+\label{tab:budget}
+\small
+\begin{tabular}{@{}cccccc@{}}
+\toprule
+Order $L$ & Population $H(Y_{t+1}\mid S_L)$ & Order-$L$ test loss & Selected order & Selected test loss \\
+\midrule
+0 & 1.0970 & 1.0959 & 0 & 1.0959 \\
+1 & 1.0495 & 1.0391 & 1 & 1.0391 \\
+2 & 1.0444 & 1.0325 & 2 & 1.0325 \\
+3 & 1.0421 & 1.0374 & 2 & 1.0325 \\
+4 & 1.0418 & 1.0508 & 2 & 1.0325 \\
+5 & 1.0417 & 1.2289 & 2 & 1.0325 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{figure}[tbp]
 \centering
-\includegraphics[width=0.85\linewidth]{budget_curve_vs_theory}
-\caption{Held-out predictive log loss versus packaged memory order in the hidden-type benchmark. The horizontal line marks the exact packaged first-order uncertainty $H(Y_{t+1}\mid Y_t)$. The reported curve is the feasible-class envelope up to order $L$, so saturation indicates that additional packaged memory no longer buys back detectable predictive distinctions at this sample size.}
-\label{fig:budget-curve}
+\includegraphics[width=\linewidth]{fig_budget}
+\caption{Randomness as a function of memory. (a)~Exact population entropy of the next package given the last $L$ packages (order $0$ uses no past), with the microstate floor $H(Y_{t+1}\mid X_t)$. The arrow marks the closure deficit $\mathsf{CD}_1=0.110$ nats. Packaged memory recovers only a small part of it. (b)~Close-up with finite-sample results: test loss of the validation-selected model at each budget, and test loss of each fitted order on its own. The order-$5$ model overfits, with test loss $1.229$, off scale. The validation-selected test losses at budgets $1$--$5$ sit below the population curve because this test segment happens to be easier than average (see text).}
+\label{fig:budget}
 \end{figure}
 
-The point of this experiment is not that higher order is always better. The point is that randomness can be priced. Extra memory lowers predictive loss exactly when the current package has failed to absorb distinctions that still matter for its future. In Six Birds language, this is the P6 side of the story: what looks like chance at one budget becomes predictable at another because the layer has paid to carry more of its unresolved closure forward.
+\paragraph{Finite-sample result.} \Cref{fig:budget}(b) shows what a data-limited observer sees. Validation-based selection recovers the first two steps. The selected test loss falls from $1.0959$ (order $0$) to $1.0391$ (order $1$) to $1.0325$ (order $2$), a memory gain of $0.0066$ nats against the population value $0.0051$. Selection then stays at order two. The order-three model does slightly worse than order two on validation data ($1.0453$ versus $1.0446$), even though the population gain from a third package is $0.0024$ nats. Higher orders overfit: order five has $243$ contexts and a test loss of $1.229$. The flat part of the curve therefore reflects the sample size, not exhaustion of the predictive structure. The population staircase shows that some structure remains.
 
-\subsection{Hashing as Packaging and One-Wayness}\label{sec:results-hashing}
+At budgets $1$ through $5$, the validation-selected test losses lie $0.009$ to $0.012$ nats below the population curve. This is not a violation of \Cref{prop:budget}, which concerns expectations. The exact population order-one predictor, which knows the true chain, itself scores $1.0388$ on this test segment, against its expected $1.0495$. A batch-means standard error of $0.0066$ for that average puts the discrepancy at about $1.6$ standard errors, so the segment is simply easier than average. (The common alternative of reporting, at each budget, the best test loss among orders $\le L$ gives a curve that cannot increase by construction. Here it coincides with the validation-selected curve, but we do not use it as evidence.)
 
-Hashing provides an engineered version of the same logic in a deterministic many-to-one map. A truncated digest $H_n : \{0,1\}^m \to \{0,1\}^n$ does not create new entropy; it packages a large input space into a short stable record and leaves preimage identification to whatever budget the observer can afford \citep{rogaway2004cryptographichashfunctionbasics}. We therefore examine three input regimes on small safe truncations: a uniform high-entropy source, a low-entropy synthetic dictionary of size $256$, and a fifty-fifty medium mixture of dictionary and out-of-dictionary inputs.
+\paragraph{Reading.} In Six Birds terms, this is the accounting side (P6) of non-closure. What looks like chance at one memory budget becomes partly predictable at a larger one, because the layer pays to carry more of its past. The exact staircase also shows the limit of that payment. Distinctions that leave no trace in the packaged history stay random at this layer, however much packaged memory one buys.
 
-In the uniform regime, the familiar one-wayness heuristic appears exactly where it should: in the small-success region $q/2^n \le 0.25$, empirical inversion success tracks the line $q/2^n$ with mean absolute deviation $3.70\times 10^{-3}$. \Cref{fig:hashing-inversion} plots empirical success against $q/2^n$ directly. For example, at $n=16$ and budget $q=256$, the empirical success rate is $6.67\times 10^{-3}$ against the simple baseline $256/2^{16}=3.91\times 10^{-3}$. In this regime, the digest is effectively random-looking relative to the bounded inversion budget, even though the map is fully deterministic.
+\subsection{Hashing as packaging}\label{sec:results-hashing}
 
-That behavior collapses once the input distribution is small. At the same truncation $n=16$ and the same budget $q=256$, low-entropy dictionary inputs invert with probability $1.00$, while the medium mixture already reaches $0.463$. The difference is not in the hash function but in how much preimage uncertainty the input source actually contains. Hashing does not manufacture entropy; it can only hide distinctions that were present to begin with.
+A hash function is an engineered packaging. It maps a large input space onto a short digest and is designed to make the reverse direction hard \citep{rogaway2004cryptographichashfunctionbasics}. A deterministic map cannot create entropy, because $H(h(X))\le H(X)$ for any function $h$. The randomness a hash appears to have must therefore come from its inputs and from the limited budget of whoever tries to invert it. Our toy experiment makes this concrete.
 
-Simple random-lookingness tests tell the same story. Using $3000$ sampled digests and $16$-bit truncation for the collision audit, the uniform regime has collision ratio $0.816$ relative to the ideal random-output expectation and is not grossly flagged by simple byte- or bit-level tests. The medium mixture and low-entropy regimes, by contrast, jump to collision ratios $66.24$ and $255.30$, with distinct-value fractions $0.569$ and $0.0853$, respectively. \Cref{fig:hashing-collision} shows the collision-ratio separation on a log scale. A bounded observer therefore distinguishes these regimes without sophisticated cryptanalysis: high-entropy inputs look random enough, low-entropy inputs do not, and medium mixtures fall in between.
+\paragraph{Design.} Inputs are $32$-bit integers, so the domain has $N=2^{32}$ elements. They are hashed with SHA-256, and the digest is truncated to its first $n\in\{8,12,16,20\}$ bits. In each trial, a target input is drawn, and an attacker queries up to $q\in\{1,4,16,\dots,1024\}$ inputs; smaller budgets use prefixes of the same query sequence. The attacker succeeds if any queried input has the same truncated digest as the target, which need not be the target itself. We run $300$ trials per condition and three input regimes:
+\begin{itemize}
+\item \emph{uniform}: the target is uniform on the domain, and the attacker queries distinct random inputs;
+\item \emph{dictionary}: the target is uniform on a fixed set of $256$ inputs, and the attacker enumerates that set;
+\item \emph{mixture}: with probability $\tfrac12$ the target comes from the dictionary, otherwise uniformly from outside it, and the attacker enumerates the dictionary first and then queries fresh random inputs.
+\end{itemize}
+As a reference, we use an ideal random function. For a uniform target and $q$ distinct queries, averaging over all functions from the domain to $n$-bit outputs gives the success probability
+\begin{equation}
+1-\Bigl(1-\frac{q}{N}\Bigr)\bigl(1-2^{-n}\bigr)^{q},
+\label{eq:random-function-reference}
+\end{equation}
+because the queries hit the target itself with probability $q/N$, and otherwise each of the $q$ outputs matches independently with probability $2^{-n}$. For $q\ll 2^n$ this is close to the familiar $q/2^n$. The reference describes a random function, not SHA-256 specifically, and it says nothing about cleverer attacks on the real function.
+
+\paragraph{Inversion.} With uniform inputs, truncated SHA-256 behaves like the reference (\Cref{fig:hashing}a). Across the $22$ uniform conditions with $q/2^n\le\tfrac14$, the mean absolute difference between observed success and \eqref{eq:random-function-reference} is $0.0046$. That is comparable to the reference's own binomial standard error at $300$ trials, which averages $0.0053$ over these conditions, and $21$ of the $22$ conditions lie within two such standard errors. The exception is a single success at $n=20$, $q=256$, where the reference expects $0.07$ successes. For example, at $n=16$ and $q=256$, the observed success is $0.0067$ (two successes) against a reference value of $0.0039$. The picture changes completely when the inputs have little entropy (\Cref{fig:hashing}b). At the same $n=16$ and $q=256$, dictionary targets are inverted in every trial, and mixture targets in $46\%$ of trials. The mixture curve levels off near one half because, once the dictionary is exhausted, the remaining targets are as hard as uniform ones. The hash function is the same in all three regimes. What differs is the input source and, with it, the attacker's query strategy: a small source both shrinks the set of plausible preimages and lets the attacker enumerate that set first.
 
 \begin{figure}[tbp]
 \centering
-\includegraphics[width=0.85\linewidth]{hashing_inversion_vs_q_over_2n}
-\caption{Uniform-input inversion success in the low-success regime plotted against the baseline $q/2^n$. Across truncation levels, empirical success remains close to the diagonal, matching the expected feasibility-limited scaling of one-way search.}
-\label{fig:hashing-inversion}
+\includegraphics[width=\linewidth]{fig_hashing}
+\caption{Inversion of truncated SHA-256 by bounded search. (a)~Uniform inputs: observed success against the ideal random-function reference \eqref{eq:random-function-reference}, for four digest lengths $n$ and six query budgets, with $\pm1$ binomial standard errors. Conditions with no success in $300$ trials are drawn as open markers along the bottom. The gray diagonal is exact agreement. (b)~At $n=16$, success against query budget for the three input regimes. The random-function reference (thin line) is indistinguishable from the uniform curve at this scale.}
+\label{fig:hashing}
 \end{figure}
 
-\begin{figure}[tbp]
+\paragraph{Looking random.} The same distinction shows up in simple statistics of the digests (\Cref{tab:hash-tests}). We hash $3{,}000$ inputs from each regime and count repeated $16$-bit truncated digests. We report the number of colliding pairs relative to the $68.6$ pairs expected for uniformly random outputs, and a chi-squared statistic on byte frequencies of the full $256$-bit digests. Uniform inputs give a collision ratio of $0.82$ and an unremarkable byte statistic. Dictionary inputs can produce at most $256$ distinct digests, so they repeat constantly, with a collision ratio of $255$. The mixture falls in between. A bit-level runs test, by contrast, does not separate the regimes ($|z|<1.7$ in all three). Each digest still looks random bit by bit; what gives the low-entropy regimes away is that whole digests repeat. These statistics are diagnostics with heuristic thresholds, not calibrated tests of indistinguishability.
+
+\begin{table}[tbp]
 \centering
-\includegraphics[width=0.85\linewidth]{hashing_collision_ratio_by_distribution}
-\caption{Collision-ratio separation for $16$-bit truncated digests under three input regimes. The vertical axis is logarithmic. High-entropy uniform inputs remain near the ideal random-output expectation, while medium-mixture and low-entropy inputs become trivially distinguishable.}
-\label{fig:hashing-collision}
-\end{figure}
+\caption{Simple randomness diagnostics for $3{,}000$ hashed inputs per regime. Collisions use $16$-bit truncated digests; the byte statistic uses full $256$-bit digests and is standardized as $(\chi^2-255)/\sqrt{510}$.}
+\label{tab:hash-tests}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Input regime & Distinct 16-bit digests & Collision ratio & Byte $\chi^2$, standardized \\
+\midrule
+uniform & 2944 & 0.82 & $-0.6$ \\
+mixture & 1708 & 66.2 & $33.6$ \\
+dictionary & 256 & 255.3 & $111.8$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-The hashing experiment is deliberately toy-sized, but its conceptual role is exact. One-wayness and random-lookingness do not require a primitive source of randomness. They arise when a deterministic packaging map is observed through a bounded budget and supplied with enough input entropy to make unpaid distinctions expensive to reconstruct. This is the same closure-and-accounting mechanism seen earlier in coarse-grained dynamics, now displayed in an engineered many-to-one map.
+\paragraph{Reading.} In the language of this paper, the hash is a packaging with enormous fibers. Each $16$-bit digest has on average $2^{16}=65{,}536$ preimages in the $32$-bit domain. Inverting it means recovering a distinction the packaging discarded, and our prescribed attacker does so by search. When the inputs are uniform, the discarded distinctions are many and equally likely, so search is expensive and the digest looks random. When the inputs are few, the fibers are effectively small, and both effects disappear. One-wayness and random appearance, in this toy, are the packaging-and-budget mechanism of the earlier sections applied to a deterministic map. They do not show that the map creates randomness, and they make no claim about the security of SHA-256 against real adversaries.

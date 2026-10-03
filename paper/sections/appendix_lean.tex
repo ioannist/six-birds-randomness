@@ -1,26 +1,20 @@
-\section{Lean KL Bridge}\label{app:lean}
+\section{Lean Formalization of the KL Bridge}\label{app:lean}
 
-The main text uses the expected-Kullback--Leibler form of closure deficit in \Cref{prop:cd-kl}. As a small formal appendix, the companion repository at \url{https://github.com/ioannist/six-birds-randomness} includes a machine-checked Lean development that bridges probability-level KL divergence to the expected log-likelihood ratio form used in the finite arguments \citep{demoura2015leantheoremprover,mathlib2020leanmathematicallibrary}. The formal artifact is intentionally modest. It does not attempt a full mechanization of conditional mutual information or of the complete closure-deficit theory. Instead it certifies the KL step on which the expected-divergence reading rests.
+The companion repository contains a small Lean~4 development, built on mathlib, that machine-checks the Kullback--Leibler identities behind \Cref{prop:cd-kl} \citep{demoura2015leantheoremprover,mathlib2020leanmathematicallibrary}. It is deliberately narrow. It certifies the bridge between KL divergence and the expected log-likelihood ratio, and the zero criterion for a weighted sum of divergences. It does not formalize conditional mutual information or the rest of the paper.
 
-For probability measures $\mu$ and $\nu$ with $\mu \ll \nu$, the formal development proves the identity
+\paragraph{A subtlety about real-valued KL.} In mathlib, the KL divergence $\mathrm{klDiv}(\mu,\nu)$ takes values in the extended nonnegative reals, so it can be $+\infty$. Converting it to a real number with \texttt{toReal} sends $+\infty$ to $0$, and the Bochner integral of a non-integrable function is also defined to be $0$. An identity of the form
 \[
-(\mathrm{klDiv}(\mu,\nu))^{\mathrm{toReal}}
-=
-\int \mathrm{llr}_{\mu,\nu}\, d\mu,
+\mathrm{klDiv}(\mu,\nu)^{\mathrm{toReal}}=\int \mathrm{llr}_{\mu,\nu}\,d\mu
+\qquad(\mu\ll\nu)
 \]
-that is, the real-valued Kullback--Leibler divergence equals the integral of the log-likelihood ratio under $\mu$. From that bridge it derives the nonnegativity statement
-\[
-0 \le \int \mathrm{llr}_{\mu,\nu}\, d\mu.
-\]
-The development also records the zero-divergence characterization for probability measures, namely that KL divergence vanishes exactly when the two measures are equal.
+is therefore true but can read $0=0$ when the divergence is in fact infinite. For example, on the positive integers, take $\mu(n)\propto n^{-2}$ and $\nu(n)\propto e^{-n}$. Then $\mu\ll\nu$, but the expected log ratio diverges like $\sum_n 1/n$. A faithful real-valued reading needs integrability of the log-likelihood ratio, or a finite space, where integrability is automatic.
 
-Conceptually, this appendix matters because the paper's finite-state formula
-\[
-\mathsf{CD}_\tau(\Pi)
-=
-\sum_x \pi(x)\,
-D_{\mathrm{KL}}\!\bigl(p_x^{(\tau)} \,\|\, \bar p_{\Pi(x)}^{(\tau)}\bigr)
-\]
-is an instance of this more general expected-divergence pattern. The Lean artifact therefore does not formalize the entire manuscript, but it does machine-check the bridge between divergence and expected log-likelihood ratio that underwrites the KL reading of hidden predictive residue.
+\paragraph{What is proved.} The development exports ten theorems. Their transitive axioms, printed by an audit target that is part of the default build, are only Lean's standard \texttt{propext}, \texttt{Classical.choice}, and \texttt{Quot.sound}. There are no \texttt{sorry} placeholders and no project-specific axioms. In mathematical terms, for probability measures $\mu,\nu$ the development proves the following.
+\begin{enumerate}
+\item \emph{General space.} If $\mu\ll\nu$, then the real-valued identity above holds and the integral is nonnegative, with the caveat just described. If in addition the log-likelihood ratio is $\mu$-integrable, then $\mathrm{klDiv}(\mu,\nu)$ equals the integral as an extended real, so it is finite. Under these hypotheses, the integral is zero if and only if $\mu=\nu$. Without any hypotheses, $\mathrm{klDiv}(\mu,\nu)=0$ if and only if $\mu=\nu$.
+\item \emph{Finite space.} On a finite discrete space, the log-likelihood ratio is always integrable. If $\mu\ll\nu$, the divergence equals the finite sum $\sum_x \mu(\{x\})\,\mathrm{llr}_{\mu,\nu}(x)$, with no hidden infinity.
+\item \emph{Weighted zero criterion.} If the extended-valued divergence is finite, its real-valued projection is zero if and only if $\mu=\nu$. For nonnegative weights $w_i$ and pairs $(\mu_i,\nu_i)$ whose extended-valued divergences are finite whenever $w_i>0$, the sum $\sum_i w_i\,\mathrm{klDiv}(\mu_i,\nu_i)^{\mathrm{toReal}}$ is zero if and only if $\mu_i=\nu_i$ for every $i$ with $w_i>0$. On a finite space, absolute continuity $\mu_i\ll\nu_i$ for each positive-weight $i$ suffices, and finiteness is derived.
+\end{enumerate}
+The last item is the abstract form of \Cref{prop:cd-zero}(ii). Take the index $i$ to be a microstate $x$, the weight to be $\pi(x)$, $\mu_i=p_x^{(\tau)}$, and $\nu_i=\bar p_{\Pi(x)}^{(\tau)}$. The absolute continuity it requires is exactly what the proof of \Cref{prop:cd-kl} establishes for occupied microstates.
 
-The tracked Lean files in the repository are the smoke module and the KL bridge module. Their role in the present paper is evidentiary rather than expository: they certify a core algebraic step, while the manuscript itself remains focused on the conceptual and empirical account of randomness as predictive non-closure.
+\paragraph{What is not formalized.} The weights and measures in the weighted theorems are inputs. The development does not construct the stationary package forecasts, and it does not prove the mixture argument that supplies absolute continuity. Nor does it formalize conditional mutual information, the decomposition \eqref{eq:cd-decomposition}, Pinsker's inequality, the memory bound, or budgeted prediction. Those steps rest on the finite proofs given in the main text.

@@ -20,6 +20,7 @@
 \usepackage[font=small,labelfont=bf]{caption}
 \usepackage{xurl}
 
+\usepackage{aliascnt}
 \usepackage[sort&compress]{natbib}
 \usepackage[hidelinks,pdfusetitle]{hyperref}
 \usepackage{orcidlink}
@@ -64,15 +65,24 @@
 
 \fancypagestyle{firstpage}{%
   \fancyhf{}
-  \fancyfoot[C]{\scriptsize Automorph Inc., Wilmington, DE, USA \quad \texttt{ioannis@automorph.io} \quad DOI: 10.5281/zenodo.18926433 \quad \textcopyright\ 2026 \quad CC-BY 4.0 \quad Preprint --- not peer reviewed.}
+  \fancyfoot[C]{\scriptsize Automorph Inc., Wilmington, DE, USA \quad \texttt{ioannis@automorph.io} \quad DOI: 10.5281/zenodo.23120474 \quad \textcopyright\ 2026 \quad CC-BY 4.0 \quad Preprint --- not peer reviewed.}
   \renewcommand{\headrulewidth}{0pt}
   \renewcommand{\footrulewidth}{0pt}
 }
 
 \newtheorem{theorem}{Theorem}[section]
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{definition}[theorem]{Definition}
-\newtheorem{remark}[theorem]{Remark}
+\newcommand{\sharedthm}[3][plain]{%
+  \theoremstyle{#1}%
+  \newaliascnt{#2}{theorem}%
+  \newtheorem{#2}[#2]{#3}%
+  \aliascntresetthe{#2}%
+  \crefname{#2}{#3}{#3s}\Crefname{#2}{#3}{#3s}}
+\sharedthm{proposition}{Proposition}
+\sharedthm{lemma}{Lemma}
+\sharedthm{corollary}{Corollary}
+\sharedthm{definition}{Definition}
+\sharedthm{remark}{Remark}
+\sharedthm[definition]{example}{Example}
+\theoremstyle{plain}
 
 \numberwithin{equation}{section}
