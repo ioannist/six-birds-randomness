@@ -80,7 +80,9 @@ def _load_clustering_metrics(metrics_path: Path) -> list[dict[str, Any]]:
     return rows
 
 
-def _find_existing_baseline(dataset_path: Path, k_list: list[int]) -> Path | None:
+def _find_existing_baseline(
+    dataset_path: Path, k_list: list[int], train_frac: float, seed: int
+) -> Path | None:
     base = Path("results/rep_packaging_clustering")
     if not base.is_dir():
         return None
@@ -94,6 +96,12 @@ def _find_existing_baseline(dataset_path: Path, k_list: list[int]) -> Path | Non
             continue
         rows = _load_clustering_metrics(metrics)
         if not rows:
+            continue
+        # Old baselines scored order-1 and order-2 on different targets. Reuse
+        # only the corrected protocol with matching split and packaging seed.
+        if any(int(r.get("evaluation_start", -1)) != 2
+               or float(r.get("train_frac", -1)) != train_frac
+               or int(r.get("seed", -1)) != seed for r in rows):
             continue
         dataset_vals = {r.get("dataset_path", "") for r in rows}
         matches_dataset = False
@@ -111,7 +119,7 @@ def _find_existing_baseline(dataset_path: Path, k_list: list[int]) -> Path | Non
     return None
 
 
-def _run_baseline(dataset_path: Path, k_list_str: str, seed: int) -> Path:
+def _run_baseline(dataset_path: Path, k_list_str: str, seed: int, train_frac: float) -> Path:
     cmd = [
         sys.executable,
         "experiments/rep_packaging/run_clustering_packaging.py",
@@ -121,6 +129,8 @@ def _run_baseline(dataset_path: Path, k_list_str: str, seed: int) -> Path:
         k_list_str,
         "--seed",
         str(seed),
+        "--train_frac",
+        str(train_frac),
     ]
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0:
@@ -272,9 +282,9 @@ def main() -> None:
     if T_train < 20 or (T - T_train) < 20:
         raise ValueError("train/test split too short; increase T or adjust train_frac")
 
-    baseline_run = _find_existing_baseline(dataset_path, k_list)
+    baseline_run = _find_existing_baseline(dataset_path, k_list, args.train_frac, args.baseline_seed)
     if baseline_run is None:
-        baseline_run = _run_baseline(dataset_path, args.k_list, args.baseline_seed)
+        baseline_run = _run_baseline(dataset_path, args.k_list, args.baseline_seed, args.train_frac)
     baseline_metrics = _load_clustering_metrics(baseline_run / "metrics.csv")
     baseline_by_k: dict[int, dict[str, Any]] = {}
     for row in baseline_metrics:
@@ -390,7 +400,7 @@ def main() -> None:
 
         P1 = fit_markov_order1(train_y, k)
         P2 = fit_markov_order2(train_y, k)
-        nll1_nn = float(nll_order1(test_y, P1))
+        nll1_nn = float(nll_order1(test_y, P1, start=2))
         nll2_nn = float(nll_order2(test_y, P2))
         gap_nn = float(nll1_nn - nll2_nn)
 

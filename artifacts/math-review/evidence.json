@@ -1,0 +1,147 @@
+{
+  "baseline_commit": "a53368b",
+  "budget": {
+    "history_entropies_population": [
+      1.0969667730696158,
+      1.049534657075744,
+      1.044425489284965,
+      1.0420696657315576,
+      1.041756303229139,
+      1.0417204958464705
+    ],
+    "n_test_targets": 2495,
+    "oracle_monotonicity_is_by_construction": true,
+    "order1_to_order2_population_gain": 0.005109167790779079,
+    "order2_to_order3_population_gain": 0.0023558235534073546,
+    "test_oracle_envelope": [
+      1.095940896876193,
+      1.0391099875518295,
+      1.0325307774490786,
+      1.0325307774490786,
+      1.0325307774490786,
+      1.0325307774490786
+    ],
+    "validation_selected_test_losses": [
+      1.095940896876193,
+      1.0391099875518295,
+      1.0325307774490786,
+      1.0325307774490786,
+      1.0325307774490786,
+      1.0325307774490786
+    ]
+  },
+  "frozen_checksums_verified": 21,
+  "hashing": {
+    "baseline": "uniform target under an ideal random function, including input overlap",
+    "conditions": 72,
+    "empirical_successes_match_frozen": true
+  },
+  "lean_axioms": {
+    "finite_probability_klDiv_eq_sum_llr": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "finite_probability_llr_integrable": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "finite_weighted_probability_klDiv_eq_zero_iff": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "probability_integral_llr_eq_zero_iff": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "probability_integral_llr_nonneg": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "probability_klDiv_eq_ofReal_integral_llr": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "probability_klDiv_eq_zero_iff": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "probability_toReal_klDiv_eq_integral_llr": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "probability_toReal_klDiv_eq_zero_iff": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ],
+    "weighted_probability_klDiv_eq_zero_iff": [
+      "propext",
+      "Classical.choice",
+      "Quot.sound"
+    ]
+  },
+  "markov": {
+    "conditions": 17,
+    "max_abs_decomposition_residual": 1.6642503347652493e-16,
+    "max_cd_change_from_frozen": 1.7900177867735678e-16,
+    "min_pinsker_margin": -7.507245877437207e-17,
+    "uniform_rm_cd_correlation": 0.9594935458822504
+  },
+  "numerical_scope": "floating finite-model evaluation; no interval certificates or universal sampled proof",
+  "review_method": "proof reconstruction and adversarial self-review; no independent reviewer",
+  "runs": {
+    "budget_curves": "results/budget_curves/20261003_093643_31e31f48",
+    "hashing_toy": "results/hashing_toy/20261003_093646_505ab3b2",
+    "markov_bench": "results/markov_bench/20261003_093641_11b30e8e",
+    "rep_packaging_clustering": "results/rep_packaging_clustering/20261003_093648_fa1eb849",
+    "rep_packaging_dataset": "results/rep_packaging/20261003_093647_c7bd70dc"
+  },
+  "scope": "mathematics and implementation review; publication inputs remain frozen",
+  "source_sha256": {
+    "configs/markov_bench_default.json": "698d396e7ad73527ad2c9d351b157183979a33d096b2bb9007d21a0a6c118f09",
+    "configs/markov_bench_smoke.json": "974e3af2fcddae8e7043888a82655209aaa8316dff91dd84b7dbaac46f390940",
+    "experiments/budget_curves/run_budget_curves.py": "2e824ca323c1c1e12cf0efc2f59e7ee10615295a35d3c41e51b82288592479a2",
+    "experiments/hashing_toy/run_hashing_toy.py": "323e0fb19099f615f3c85802de7402026a1f959e4466d7e5cf3202f83d8ee6d3",
+    "experiments/markov_bench/analyze.py": "b7d288805c0c0976ca273c7aad7b103b0163d250706524d66388624d5cd80104",
+    "experiments/markov_bench/run_sweep.py": "13685d982b0297a4fbe5085f0f0c6bfd8c76f97806bf6fa3f2bb1af46d69802d",
+    "experiments/rep_packaging/make_dataset.py": "aa6a9eb8751977687104276aadd03a9fc7d019527306095e8e158f9b2a6ae090",
+    "experiments/rep_packaging/run_clustering_packaging.py": "6846f4c6f5082cc8dac102a8b926759a03b1df2b8a1caa5cfdf965e95e69ef50",
+    "experiments/rep_packaging/train_discrete_encoder.py": "6c7c045ef9c6393c676171c331ea6a9991c1961ed5dfd1d5d104693fd092ccaf",
+    "experiments/smoke.py": "f1a1cbf150776afed422af7dcf195780198e706bb6cf823cd2a57310a2e478e7",
+    "lean/Audit.lean": "358431ad53b86fa339195a768ec9ce8fd8dcdae46704da8aca062d4fa1ec466a",
+    "lean/RandomnessLedgerLean.lean": "8d68a0b56f474ecc69ed0410371b19546b17de30a02dd34584d0f5fdeb647058",
+    "lean/RandomnessLedgerLean/Basic.lean": "a88fef4d3efa63c9f9f5c948dd5ba1de3ea09d828ce8388ee83fa3d039e734a4",
+    "lean/RandomnessLedgerLean/KLBridge.lean": "d70ff018d7f9e8d7d7097696798fc9fd2474f5c591911772186791880bce7cc5",
+    "lean/Smoke.lean": "4dbfbd364c7a205238639a8cd0c1ea5c05ae13ee143733e9e5c87f13e378b8d3",
+    "lean/lake-manifest.json": "e4520cd424af8803e9712ad3da5d30f21dd9242ba283c0212962d896797abaa7",
+    "lean/lakefile.toml": "a11141bf75a5aa96c110cdf225e5720b4b63c8a8707c5d849b5b64880f798a60",
+    "lean/lean-toolchain": "cddce6b7720d627aa376e4195d9aeb33cee5287b88db4309059e0481479102f1",
+    "scripts/audit_mathematics.py": "5e552ad2d7e95627309775ebaa02b5b0c9741156277c0725573e83bf4199cae2",
+    "src/randomness_ledger/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "src/randomness_ledger/estimators.py": "fed21d5a0878a33e35341dcc62d24ffae20cb2e4a0480b4ef455a00faccde94e",
+    "src/randomness_ledger/generators.py": "7dc703e2c633ed0ba7f1f20ee936e8c9500f87044e74462a1140b453acf12cde",
+    "src/randomness_ledger/hashing.py": "8a18bb6718a010757f2f383039326a6b2598d384ec83918374d71cdd9becb91b",
+    "src/randomness_ledger/markov.py": "64da2b06e34d4a90a8e075ef3787e293eb1d390a82213e87f21db4683c9580da",
+    "src/randomness_ledger/metrics.py": "9fce94dd5cd06a3fd77ea1a5534111a9fff41f38ccfb46a254fff204932744d5",
+    "src/randomness_ledger/obs_models.py": "f4f3dce11ac62589d0150597d8c52f9e8b8096a7a718e7e6a381daffa921806e",
+    "src/randomness_ledger/packaging.py": "3a4b869ec3f0d6c131f7bd77c862e809374db380c99325dc034b5b8d033b363e",
+    "tests/test_estimators.py": "d3b10b6115defeb2688634cdd0a39baa7da7756d5311135c17e7abe2b224f2e9",
+    "tests/test_generators.py": "210f82234701e1ec5581b5d3b3ca153f95c0e479726b5b8e340b22d421b680e6",
+    "tests/test_markov.py": "09d43cd60ea6a6601ebda5902aa4242694bb6bc8509fee23533ffb77aa95fd12",
+    "tests/test_mathematical_contracts.py": "e76be33c7667e861a5f18305a6356a1234ab3cf513b2b82329c17de3a5be544e",
+    "tests/test_metrics.py": "ccc326b706891dbd590e2c73bba04d4fcedc27acbef7f3c1a5cf3add6a107cdf",
+    "tests/test_obs_models.py": "9b18de6a8e9f66276e29690738e12e09318e858e85796d2d74a20ee2da3cc9cc",
+    "tests/test_packaging.py": "e7788043f3e8121a02dd42efbee623d89eac815548c5b7d43c511c9299ab9ff2",
+    "tests/test_robustness.py": "49a17476914285748a0d2f09eab91650ee55f4b20242879e180365c434cc49d3",
+    "tests/test_smoke.py": "3e7e00cf8213f347217b3f364709f8a68762eb40e7c8e51c72679d88a1e48ed9"
+  },
+  "test_count": 54
+}

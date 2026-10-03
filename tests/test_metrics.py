@@ -29,7 +29,7 @@ def test_closure_deficit_near_zero_for_lumpable_chain() -> None:
 
 def test_decomposition_residual_small_on_random_chain() -> None:
     rng = np.random.default_rng(20260305)
-    n, k, tau = 6, 3, 2
+    n, tau = 6, 2
     P = normalize_rows(rng.random((n, n)) + 0.1)
     pi_map = np.array([0, 0, 1, 1, 2, 2])
 

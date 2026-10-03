@@ -1,7 +1,7 @@
 name = "RandomnessLedgerLean"
 version = "0.1.0"
 keywords = ["math"]
-defaultTargets = ["RandomnessLedgerLean"]
+defaultTargets = ["RandomnessLedgerLean", "Audit"]
 
 [leanOptions]
 pp.unicode.fun = true # pretty-prints `fun a ↦ b`
@@ -19,3 +19,6 @@ name = "RandomnessLedgerLean"
 
 [[lean_lib]]
 name = "Smoke"
+
+[[lean_lib]]
+name = "Audit"

@@ -22,6 +22,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 
+ROOT = Path(__file__).resolve().parents[2]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
+
+from randomness_ledger.hashing import random_oracle_preimage_success  # noqa: E402
+
 
 def _run_id() -> str:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
@@ -48,6 +55,8 @@ def _validate_args(args: argparse.Namespace, n_bits_list: list[int], q_list: lis
         raise ValueError("trials must be >= 1")
     if args.m_bits < max(n_bits_list):
         raise ValueError("m_bits must be >= max(n_bits)")
+    if args.m_bits > 62:
+        raise ValueError("m_bits must be <= 62 for the int64 sampling implementation")
     if args.dictionary_size < 2:
         raise ValueError("dictionary_size must be >= 2")
     if not (0.0 < args.mix_dict_weight < 1.0):
@@ -365,7 +374,7 @@ def main() -> None:
             for q in q_list:
                 empirical = float(success_counts[(distribution, n_bits, q)] / float(args.trials))
                 baseline_q_over = float(min(float(q) / two_pow_n, 1.0))
-                baseline_exact = float(1.0 - (1.0 - (1.0 / two_pow_n)) ** int(q))
+                baseline_exact = random_oracle_preimage_success(q, n_bits, args.m_bits)
                 abs_err = float(abs(empirical - baseline_q_over))
                 success_se = float(math.sqrt(max(empirical * (1.0 - empirical), 0.0) / float(args.trials)))
 
@@ -530,6 +539,9 @@ def main() -> None:
             "domain_size": int(domain_size),
             "fixed_for_entire_run": True,
         },
+        "success_semantics": "any matching preimage, not recovery of the original input",
+        "baseline_exact_semantics": "ideal random-function uniform-target baseline including q/2**m",
+        "randomness_test_semantics": "full 256-bit digests for byte/bit tests; truncated digests for collisions",
     }
 
     manifest = {

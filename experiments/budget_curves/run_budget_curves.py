@@ -38,7 +38,7 @@ from randomness_ledger.generators import (  # noqa: E402
     gen_perturbed_lumpable,
 )
 from randomness_ledger.markov import simulate_chain, stationary_dist  # noqa: E402
-from randomness_ledger.metrics import macro_cond_entropy  # noqa: E402
+from randomness_ledger.metrics import macro_cond_entropy, packaged_history_entropy  # noqa: E402
 
 
 def _run_id() -> str:
@@ -97,6 +97,8 @@ def _validate_args(args: argparse.Namespace) -> None:
         raise ValueError("burn_in must be >= 0")
     if not (0.0 < args.train_frac < 1.0):
         raise ValueError("train_frac must be in (0, 1)")
+    if not (0.0 < args.validation_frac < 1.0):
+        raise ValueError("validation_frac must be in (0, 1)")
     if args.max_order < 0 or args.max_order > 5:
         raise ValueError("max_order must satisfy 0 <= max_order <= 5")
 
@@ -107,10 +109,12 @@ def _fit_order0(train: np.ndarray, k: int, smoothing: float = 1e-6) -> np.ndarra
     return probs
 
 
-def _nll_order0(test: np.ndarray, p0: np.ndarray) -> float:
-    targets = test[1:]
-    probs = p0[targets]
-    return float(-np.mean(np.log(np.clip(probs, 1e-300, 1.0))))
+def _nll_order0(test: np.ndarray, p0: np.ndarray, start: int = 1) -> float:
+    if not 0 <= start < len(test):
+        raise ValueError("invalid evaluation start")
+    probs = p0[test[start:]]
+    with np.errstate(divide="ignore"):
+        return float(-np.mean(np.log(probs)))
 
 
 def _context_ids(sequence: np.ndarray, L: int, k: int) -> np.ndarray:
@@ -143,24 +147,29 @@ def _fit_orderL(train: np.ndarray, k: int, L: int, smoothing: float = 1e-6) -> n
     np.add.at(counts, (ctx_ids, targets), 1.0)
 
     row_sums = counts.sum(axis=1, keepdims=True)
-    probs = np.divide(counts, row_sums, out=np.zeros_like(counts), where=row_sums > 1e-15)
-    zero_rows = row_sums[:, 0] <= 1e-15
+    probs = np.divide(counts, row_sums, out=np.zeros_like(counts), where=row_sums > 0.0)
+    zero_rows = row_sums[:, 0] == 0.0
     if np.any(zero_rows):
         probs[zero_rows] = 1.0 / k
     return probs
 
 
-def _nll_orderL(test: np.ndarray, model: np.ndarray, k: int, L: int) -> float:
+def _nll_orderL(
+    test: np.ndarray, model: np.ndarray, k: int, L: int, start: int | None = None
+) -> float:
     """Evaluate average next-step NLL for order-L model on held-out test."""
     if L < 1:
         raise ValueError("L must be >= 1")
     if len(test) < L + 1:
         raise ValueError("test sequence too short for requested order")
 
-    ctx_ids = _context_ids(test[:-1], L, k)
-    targets = test[L:]
-    probs = model[ctx_ids, targets]
-    return float(-np.mean(np.log(np.clip(probs, 1e-300, 1.0))))
+    first = L if start is None else start
+    if not L <= first < len(test):
+        raise ValueError("invalid evaluation start")
+    ctx_ids = _context_ids(test[:-1], L, k)[first - L :]
+    probs = model[ctx_ids, test[first:]]
+    with np.errstate(divide="ignore"):
+        return float(-np.mean(np.log(probs)))
 
 
 def _simulate_macro_sequence(
@@ -195,6 +204,8 @@ def main() -> None:
     parser.add_argument("--T", type=int, default=20000)
     parser.add_argument("--burn_in", type=int, default=1000)
     parser.add_argument("--train_frac", type=float, default=0.5)
+    parser.add_argument("--validation_frac", type=float, default=0.5,
+                        help="Fraction of post-training data reserved for model selection.")
     parser.add_argument("--max_order", type=int, default=5)
     parser.add_argument("--seed", type=int, default=20260305)
     parser.add_argument("--outdir", default="results/budget_curves")
@@ -211,7 +222,12 @@ def main() -> None:
     k = int(np.max(pi_map)) + 1
     T_train = int(args.train_frac * args.T)
     train = y_seq[:T_train]
-    test = y_seq[T_train:]
+    heldout = y_seq[T_train:]
+    n_validation = int(args.validation_frac * len(heldout))
+    validation, test = heldout[:n_validation], heldout[n_validation:]
+    start = max(1, args.max_order)
+    if len(train) <= args.max_order or len(validation) <= start:
+        raise ValueError("train or validation split is too short for requested order")
     if len(test) < args.max_order + 5:
         raise ValueError(
             f"test length {len(test)} too short; need at least max_order+5={args.max_order + 5}"
@@ -225,10 +241,33 @@ def main() -> None:
 
     rows: list[dict[str, Any]] = []
 
-    p0 = _fit_order0(train, k)
-    nll0 = _nll_order0(test, p0)
-    rows.append(
-        {
+    models: list[np.ndarray] = []
+    for L in range(args.max_order + 1):
+        if L == 0:
+            model = _fit_order0(train, k)
+        elif L == 1:
+            model = fit_markov_order1(train, k)
+        elif L == 2:
+            model = fit_markov_order2(train, k)
+        else:
+            model = _fit_orderL(train, k, L)
+        models.append(model)
+
+    def score(sequence: np.ndarray, model: np.ndarray, L: int) -> float:
+        if L == 0:
+            return _nll_order0(sequence, model, start=start)
+        if L == 1:
+            return nll_order1(sequence, model, start=start)
+        if L == 2:
+            return nll_order2(sequence, model, start=start)
+        return _nll_orderL(sequence, model, k, L, start=start)
+
+    validation_losses = np.array([score(validation, m, L) for L, m in enumerate(models)])
+    test_losses = np.array([score(test, m, L) for L, m in enumerate(models)])
+    oracle_losses = np.minimum.accumulate(test_losses)
+    for L in range(args.max_order + 1):
+        selected = int(np.argmin(validation_losses[: L + 1]))
+        rows.append({
             "run_id": run_id,
             "preset": args.preset,
             "seed": args.seed,
@@ -237,88 +276,25 @@ def main() -> None:
             "train_frac": args.train_frac,
             "burn_in": args.burn_in,
             "k_macro": k,
-            "order": 0,
-            "budget_states": 1,
-            "budget_params": int(k - 1),
-            "nll_exact": float(nll0),
+            "order": L,
+            "budget_states": int(k**L),
+            "budget_params": int((k**L) * (k - 1)),
+            # Legacy names retained, with explicit semantics below and in config.
+            "nll_exact": float(test_losses[L]),
+            "nll": float(oracle_losses[L]),
+            "nll_empirical_oracle": float(oracle_losses[L]),
+            "validation_nll": float(validation_losses[L]),
+            "selected_order": selected,
+            "nll_selected": float(test_losses[selected]),
+            "evaluation_start": start,
+            "n_test_targets": len(test) - start,
+            "n_validation_targets": len(validation) - start,
             "hyy_theory": hyy_theory,
-            "delta_to_hyy": float(nll0 - hyy_theory),
-        }
-    )
-
-    if args.max_order >= 1:
-        P1 = fit_markov_order1(train, k)
-        nll1 = nll_order1(test, P1)
-        rows.append(
-            {
-                "run_id": run_id,
-                "preset": args.preset,
-                "seed": args.seed,
-                "tau": args.tau,
-                "T": args.T,
-                "train_frac": args.train_frac,
-                "burn_in": args.burn_in,
-                "k_macro": k,
-                "order": 1,
-                "budget_states": int(k),
-                "budget_params": int(k * (k - 1)),
-                "nll_exact": float(nll1),
-                "hyy_theory": hyy_theory,
-                "delta_to_hyy": float(nll1 - hyy_theory),
-            }
-        )
-
-    if args.max_order >= 2:
-        P2 = fit_markov_order2(train, k)
-        nll2 = nll_order2(test, P2)
-        rows.append(
-            {
-                "run_id": run_id,
-                "preset": args.preset,
-                "seed": args.seed,
-                "tau": args.tau,
-                "T": args.T,
-                "train_frac": args.train_frac,
-                "burn_in": args.burn_in,
-                "k_macro": k,
-                "order": 2,
-                "budget_states": int(k**2),
-                "budget_params": int((k**2) * (k - 1)),
-                "nll_exact": float(nll2),
-                "hyy_theory": hyy_theory,
-                "delta_to_hyy": float(nll2 - hyy_theory),
-            }
-        )
-
-    for L in range(3, args.max_order + 1):
-        model = _fit_orderL(train, k=k, L=L)
-        nllL = _nll_orderL(test, model=model, k=k, L=L)
-        rows.append(
-            {
-                "run_id": run_id,
-                "preset": args.preset,
-                "seed": args.seed,
-                "tau": args.tau,
-                "T": args.T,
-                "train_frac": args.train_frac,
-                "burn_in": args.burn_in,
-                "k_macro": k,
-                "order": L,
-                "budget_states": int(k**L),
-                "budget_params": int((k**L) * (k - 1)),
-                "nll_exact": float(nllL),
-                "hyy_theory": hyy_theory,
-                "delta_to_hyy": float(nllL - hyy_theory),
-            }
-        )
-
-    rows = sorted(rows, key=lambda r: int(r["order"]))
-    # Budget interpretation: at order L, one can always deploy any <=L predictor.
-    exact_nlls = np.array([float(r["nll_exact"]) for r in rows], dtype=float)
-    budget_nlls = np.minimum.accumulate(exact_nlls)
-    for i, r in enumerate(rows):
-        r["nll"] = float(budget_nlls[i])
-        r["delta_to_hyy"] = float(r["nll"] - hyy_theory)
+            "history_entropy_theory": packaged_history_entropy(
+                P, pi_map, args.tau, L, pi_stationary=pi_micro
+            ),
+            "delta_to_hyy": float(oracle_losses[L] - hyy_theory),
+        })
 
     fieldnames = [
         "run_id",
@@ -336,6 +312,14 @@ def main() -> None:
         "nll_exact",
         "hyy_theory",
         "delta_to_hyy",
+        "nll_empirical_oracle",
+        "validation_nll",
+        "selected_order",
+        "nll_selected",
+        "evaluation_start",
+        "n_test_targets",
+        "n_validation_targets",
+        "history_entropy_theory",
     ]
     with (run_dir / "metrics.csv").open("w", encoding="utf-8", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -347,7 +331,10 @@ def main() -> None:
     nlls = np.array([float(r["nll"]) for r in rows], dtype=float)
 
     plt.figure(figsize=(6, 4))
-    plt.plot(orders, nlls, marker="o")
+    plt.plot(orders, nlls, marker="o", label="test oracle envelope")
+    plt.plot(orders, [r["nll_selected"] for r in rows], marker="s", label="validation selected")
+    plt.plot(orders, [r["history_entropy_theory"] for r in rows], label="population entropy")
+    plt.legend()
     plt.axhline(hyy_theory, linestyle="--", linewidth=1.0)
     plt.xlabel("order")
     plt.ylabel("nll")
@@ -363,6 +350,12 @@ def main() -> None:
 
     summary = {
         "hyy_theory": hyy_theory,
+        "oracle_monotonicity_is_by_construction": True,
+        "evaluation_start": start,
+        "n_test_targets": len(test) - start,
+        "validation_selected": [{"order": r["order"], "selected_order": r["selected_order"],
+                                  "nll": r["nll_selected"]} for r in rows],
+        "history_entropies_theory": [r["history_entropy_theory"] for r in rows],
         "order_nll": [{"order": int(o), "nll": float(v)} for o, v in zip(orders, nlls)],
         "monotone_nonincreasing": monotone,
         "max_increase": max_increase,
@@ -372,6 +365,9 @@ def main() -> None:
     config_payload = {
         "run_id": run_id,
         "cli_args": vars(args),
+        "nll_semantics": "nll is a test oracle minimum over fitted models; nll_exact is per-order test loss",
+        "nll_selected_semantics": "model chosen on validation, scored on untouched common test targets",
+        "population_semantics": "history_entropy_theory is enumerated from the known stationary chain",
         "preset": args.preset,
         "preset_params": preset_params,
         "generator_meta": {"kind": meta.get("kind"), **{k: v for k, v in meta.items() if k != "K"}},

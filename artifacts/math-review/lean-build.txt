@@ -1,0 +1,32 @@
+ℹ [2792/2797] Replayed Smoke
+info: Smoke.lean:9:0: Real.binEntropy (p : ℝ) : ℝ
+info: Smoke.lean:10:0: Real.qaryEntropy (q : ℕ) (p : ℝ) : ℝ
+info: Smoke.lean:11:0: Real.negMulLog (x : ℝ) : ℝ
+info: Smoke.lean:12:0: MeasureTheory.Measure.tilted.{u_1} {α : Type u_1} {mα : MeasurableSpace α} (μ : MeasureTheory.Measure α) (f : α → ℝ) :
+  MeasureTheory.Measure α
+info: Smoke.lean:13:0: ProbabilityTheory.Kernel.{u_1, u_2} (α : Type u_1) (β : Type u_2) [MeasurableSpace α] [MeasurableSpace β] :
+  Type (max u_1 u_2)
+info: Smoke.lean:14:0: ProbabilityTheory.Kernel.condKernel.{u_5, u_6, u_7} {α : Type u_5} {β : Type u_6} {Ω : Type u_7}
+  {mα : MeasurableSpace α} {mβ : MeasurableSpace β} {mΩ : MeasurableSpace Ω} [StandardBorelSpace Ω] [Nonempty Ω]
+  [h : MeasurableSpace.CountableOrCountablyGenerated α β] (κ : ProbabilityTheory.Kernel α (β × Ω))
+  [ProbabilityTheory.IsFiniteKernel κ] : ProbabilityTheory.Kernel (α × β) Ω
+✔ [2793/2797] Built RandomnessLedgerLean.KLBridge (5.0s)
+✔ [2794/2797] Built RandomnessLedgerLean (4.5s)
+ℹ [2796/2797] Built Audit (16s)
+info: Audit.lean:4:0: 'RandomnessLedgerLean.probability_toReal_klDiv_eq_integral_llr' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+info: Audit.lean:5:0: 'RandomnessLedgerLean.probability_integral_llr_nonneg' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:6:0: 'RandomnessLedgerLean.probability_klDiv_eq_zero_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:7:0: 'RandomnessLedgerLean.probability_klDiv_eq_ofReal_integral_llr' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+info: Audit.lean:8:0: 'RandomnessLedgerLean.probability_integral_llr_eq_zero_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:9:0: 'RandomnessLedgerLean.finite_probability_llr_integrable' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:10:0: 'RandomnessLedgerLean.finite_probability_klDiv_eq_sum_llr' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:11:0: 'RandomnessLedgerLean.probability_toReal_klDiv_eq_zero_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:12:0: 'RandomnessLedgerLean.weighted_probability_klDiv_eq_zero_iff' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: Audit.lean:13:0: 'RandomnessLedgerLean.finite_weighted_probability_klDiv_eq_zero_iff' depends on axioms: [propext,
+ Classical.choice,
+ Quot.sound]
+Build completed successfully (2797 jobs).

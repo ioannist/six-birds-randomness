@@ -1,0 +1,43 @@
+results/markov_bench/20261003_093641_11b30e8e
+resolved_run_dir: results/markov_bench/20261003_093641_11b30e8e
+rows_loaded: 17
+pearson_r_rm_uniform_cd_all: 0.9594935458822504
+pearson_r_rm_uniform_cd_perturbed_lumpable: 0.9589376619695721
+plots_written:
+- cd_vs_heterogeneity_by_tau.png
+- entropy_decomposition_stacked.png
+- rm_vs_cd_scatter.png
+markov_bench run_dir=results/markov_bench/20261003_093641_11b30e8e
+results/budget_curves/20261003_093643_31e31f48
+budget_curves run_dir=results/budget_curves/20261003_093643_31e31f48
+run_dir=results/hashing_toy/20261003_093646_505ab3b2
+uniform_mean_abs_error_to_q_over_2n=0.003697
+low_entropy_success_at_q_eq_dictsize=1.000000
+randomness_tests_csv=results/hashing_toy/20261003_093646_505ab3b2/randomness_tests.csv
+uniform_not_grossly_flagged=True
+low_entropy_detected=True
+uniform_stats: byte_chi2_z=-0.639414, trunc_collision_ratio=0.815831, bit_runs_z=0.055564, bit_serial_corr=-0.000065
+low_entropy_stats: byte_chi2_z=111.847846, trunc_collision_ratio=255.296847, bit_runs_z=1.682728, bit_serial_corr=-0.001921
+runtime_seconds=2.195
+hashing_toy run_dir=results/hashing_toy/20261003_093646_505ab3b2
+dataset_path: results/rep_packaging/20261003_093647_c7bd70dc/dataset.npz
+x.shape: (3000,)
+o.shape: (3000, 4)
+y_true.shape: (3000,)
+n_micro: 8
+k_macro: 3
+unique_micro_visited: 8
+unique_macro_visited: 3
+o.mean: -0.4979879558086395
+o.std: 0.9145189523696899
+rep_packaging_dataset run_dir=results/rep_packaging/20261003_093647_c7bd70dc
+results/rep_packaging_clustering/20261003_093648_fa1eb849
+rep_packaging_clustering run_dir=results/rep_packaging_clustering/20261003_093648_fa1eb849
+
+REPRODUCE_ALL_SUMMARY
+markov_bench=results/markov_bench/20261003_093641_11b30e8e
+budget_curves=results/budget_curves/20261003_093643_31e31f48
+hashing_toy=results/hashing_toy/20261003_093646_505ab3b2
+rep_packaging_dataset=results/rep_packaging/20261003_093647_c7bd70dc
+rep_packaging_clustering=results/rep_packaging_clustering/20261003_093648_fa1eb849
+runtime_seconds=7

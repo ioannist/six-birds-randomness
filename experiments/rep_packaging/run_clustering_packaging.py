@@ -137,18 +137,30 @@ def kmeans_predict(X: np.ndarray, centers: np.ndarray) -> np.ndarray:
 def empirical_cmi_x_y1_given_y0(
     x: np.ndarray, y: np.ndarray, nX: int, kY: int
 ) -> tuple[float, float, float]:
-    """Estimate I(X_t;Y_{t+1}|Y_t) via entropy difference from transition counts."""
-    x_arr = np.asarray(x, dtype=np.int64)
-    y_arr = np.asarray(y, dtype=np.int64)
+    """Plug-in I(X_t;Y_{t+1}|Y_t) from transition counts.
+
+    For noisy observation labels Y is not a deterministic function of X.
+    The second entropy is H(Y_next | X, Y), not H(Y_next | X). This estimator
+    has finite-sample bias and does not by itself certify population differences.
+    """
+    x_arr = np.asarray(x)
+    y_arr = np.asarray(y)
     if x_arr.shape != y_arr.shape or x_arr.ndim != 1:
         raise ValueError("x and y must be 1D arrays with matching shape")
     if x_arr.size < 2:
         raise ValueError("x and y must have length >= 2")
+    for arr, size, name in ((x_arr, nX, "x"), (y_arr, kY, "y")):
+        if isinstance(size, bool) or not isinstance(size, (int, np.integer)) or size < 1:
+            raise ValueError("alphabet sizes must be positive integers")
+        if (not np.all(np.isfinite(arr)) or not np.all(arr == np.floor(arr))
+                or np.any(arr < 0) or np.any(arr >= size)):
+            raise ValueError(f"{name} must contain integer labels in its declared alphabet")
+    x_arr = x_arr.astype(np.int64)
+    y_arr = y_arr.astype(np.int64)
 
     x0 = x_arr[:-1]
     y0 = y_arr[:-1]
     y1 = y_arr[1:]
-    N = y1.size
 
     c_y0y1 = np.zeros((kY, kY), dtype=float)
     np.add.at(c_y0y1, (y0, y1), 1.0)
@@ -212,7 +224,6 @@ def main() -> None:
             raise ValueError("dataset must contain arrays 'x' and 'o'")
         x = np.asarray(data["x"], dtype=np.int64)
         o = np.asarray(data["o"], dtype=float)
-        y_true = np.asarray(data["y_true"], dtype=np.int64) if "y_true" in data.files else None
 
     if x.ndim != 1:
         raise ValueError("x must be 1D")
@@ -258,7 +269,7 @@ def main() -> None:
 
         P1 = fit_markov_order1(train_y, k)
         P2 = fit_markov_order2(train_y, k)
-        nll1 = float(nll_order1(test_y, P1))
+        nll1 = float(nll_order1(test_y, P1, start=2))
         nll2 = float(nll_order2(test_y, P2))
         gap = float(nll1 - nll2)
 
@@ -279,6 +290,9 @@ def main() -> None:
             "k": int(k),
             "n_init": int(args.n_init),
             "max_iter": int(args.max_iter),
+            "train_frac": float(args.train_frac),
+            "evaluation_start": 2,
+            "n_test_targets": int(test_y.size - 2),
             "inertia_best": best_inertia,
             "used_clusters": int(np.unique(y).size),
             "min_cluster_frac": float(np.min(frac)),
@@ -306,6 +320,9 @@ def main() -> None:
         "k",
         "n_init",
         "max_iter",
+        "train_frac",
+        "evaluation_start",
+        "n_test_targets",
         "inertia_best",
         "used_clusters",
         "min_cluster_frac",
@@ -377,6 +394,7 @@ def main() -> None:
         "run_id": run_id,
         "dataset_path": dataset_path.as_posix(),
         "cli_args": vars(args),
+        "cmi_semantics": "plug-in I(X;Y_next|Y); noisy observation labels; finite-sample bias uncorrected",
     }
     _write_json(run_dir / "config.json", config)
 

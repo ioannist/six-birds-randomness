@@ -6,7 +6,13 @@ from typing import Tuple
 
 import numpy as np
 
-from randomness_ledger.markov import kernel_power, normalize_rows, stationary_dist
+from randomness_ledger.markov import (
+    kernel_power,
+    stationary_dist,
+    validate_kernel,
+    validate_probability_vector,
+    validate_stationary,
+)
 
 
 def _validate_pi_map(pi_map: np.ndarray) -> Tuple[np.ndarray, int, np.ndarray]:
@@ -20,6 +26,8 @@ def _validate_pi_map(pi_map: np.ndarray) -> Tuple[np.ndarray, int, np.ndarray]:
         raise ValueError("pi_map must contain only finite values")
     if not np.all(np.equal(labels, np.floor(labels))):
         raise ValueError("pi_map entries must be integer-valued")
+    if np.any(labels < 0) or np.any(labels >= labels.size):
+        raise ValueError("contiguous partition labels must be in [0, n)")
 
     pi_int = labels.astype(np.int64)
     if np.any(pi_int < 0):
@@ -33,18 +41,7 @@ def _validate_pi_map(pi_map: np.ndarray) -> Tuple[np.ndarray, int, np.ndarray]:
 
 
 def _validate_prob_vector(name: str, vec: np.ndarray, size: int) -> np.ndarray:
-    """Validate a probability vector with fixed size."""
-    arr = np.asarray(vec, dtype=float)
-    if arr.ndim != 1 or arr.shape[0] != size:
-        raise ValueError(f"{name} must have shape ({size},)")
-    if not np.all(np.isfinite(arr)):
-        raise ValueError(f"{name} must contain only finite values")
-    if np.any(arr < -1e-15):
-        raise ValueError(f"{name} must be nonnegative")
-    total = float(arr.sum())
-    if not np.isclose(total, 1.0, atol=1e-10):
-        raise ValueError(f"{name} must sum to 1")
-    return arr
+    return validate_probability_vector(vec, size, name)
 
 
 def pushforward_dist(mu_micro: np.ndarray, pi_map: np.ndarray, k: int) -> np.ndarray:
@@ -58,11 +55,7 @@ def pushforward_dist(mu_micro: np.ndarray, pi_map: np.ndarray, k: int) -> np.nda
     if int(k) != inferred_k:
         raise ValueError(f"k mismatch: expected {inferred_k}, got {int(k)}")
 
-    mu = np.asarray(mu_micro, dtype=float)
-    if mu.ndim != 1 or mu.shape[0] != pi_int.shape[0]:
-        raise ValueError("mu_micro must have shape (n,) matching pi_map")
-    if not np.all(np.isfinite(mu)):
-        raise ValueError("mu_micro must contain only finite values")
+    mu = _validate_prob_vector("mu_micro", mu_micro, pi_int.shape[0])
 
     return np.bincount(pi_int, weights=mu, minlength=int(k)).astype(float)
 
@@ -81,7 +74,7 @@ def stationary_conditional_lift(
 ) -> np.ndarray:
     """Lift via stationary conditionals inside each fiber.
 
-    If the stationary macro mass of a fiber is numerically zero, this falls back
+    If the stationary macro mass of a fiber is zero, this falls back
     to a uniform allocation within that fiber for that macro label.
     """
     pi_int, k, counts = _validate_pi_map(pi_map)
@@ -90,11 +83,10 @@ def stationary_conditional_lift(
 
     pi_macro = pushforward_dist(pi_stat, pi_int, k)
     mu_micro = np.zeros_like(pi_stat)
-    tiny = 1e-15
 
     for x in range(k):
         in_fiber = pi_int == x
-        if pi_macro[x] > tiny:
+        if pi_macro[x] > 0.0:
             mu_micro[in_fiber] = mu[x] * (pi_stat[in_fiber] / pi_macro[x])
         else:
             mu_micro[in_fiber] = mu[x] / counts[x]
@@ -121,25 +113,21 @@ def macro_kernel(
     if lift not in {"uniform", "stationary"}:
         raise ValueError("lift must be 'uniform' or 'stationary'")
 
-    matrix = np.asarray(P, dtype=float)
-    if matrix.ndim != 2 or matrix.shape[0] != matrix.shape[1]:
-        raise ValueError("P must be a square matrix")
-    if not np.all(np.isfinite(matrix)):
-        raise ValueError("P must contain only finite values")
+    matrix = validate_kernel(P)
 
     n = matrix.shape[0]
     pi_int, k, _ = _validate_pi_map(pi_map)
     if pi_int.shape[0] != n:
         raise ValueError("pi_map length must match P dimension")
 
-    kernel = normalize_rows(matrix)
+    kernel = matrix
     P_tau = kernel_power(kernel, int(tau))
 
     if lift == "stationary":
         if pi_stationary is None:
             pi_stationary_vec = stationary_dist(kernel)
         else:
-            pi_stationary_vec = _validate_prob_vector("pi_stationary", pi_stationary, n)
+            pi_stationary_vec = validate_stationary(kernel, pi_stationary)
 
     macro_rows = []
     for x in range(k):

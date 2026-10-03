@@ -4,7 +4,13 @@ from __future__ import annotations
 
 import numpy as np
 
-from randomness_ledger.markov import kernel_power, normalize_rows, stationary_dist
+from randomness_ledger.markov import (
+    kernel_power,
+    stationary_dist,
+    validate_kernel,
+    validate_probability_vector,
+    validate_stationary,
+)
 from randomness_ledger.packaging import macro_kernel, pushforward_dist
 
 
@@ -17,6 +23,8 @@ def _validate_partition(pi_map: np.ndarray, n: int) -> tuple[np.ndarray, int]:
         raise ValueError("pi_map must contain only finite values")
     if not np.all(labels == np.floor(labels)):
         raise ValueError("pi_map entries must be integer-valued")
+    if np.any(labels < 0) or np.any(labels >= n):
+        raise ValueError("contiguous partition labels must be in [0, n)")
 
     pi_int = labels.astype(np.int64)
     if np.any(pi_int < 0):
@@ -30,27 +38,11 @@ def _validate_partition(pi_map: np.ndarray, n: int) -> tuple[np.ndarray, int]:
 
 
 def _validate_kernel(P: np.ndarray) -> np.ndarray:
-    """Validate and normalize a square transition kernel."""
-    matrix = np.asarray(P, dtype=float)
-    if matrix.ndim != 2 or matrix.shape[0] != matrix.shape[1]:
-        raise ValueError("P must be a square matrix")
-    if not np.all(np.isfinite(matrix)):
-        raise ValueError("P must contain only finite values")
-    return normalize_rows(matrix)
+    return validate_kernel(P)
 
 
 def _validate_prob_vector(vec: np.ndarray, n: int, name: str) -> np.ndarray:
-    """Validate a probability vector."""
-    arr = np.asarray(vec, dtype=float)
-    if arr.ndim != 1 or arr.shape[0] != n:
-        raise ValueError(f"{name} must have shape ({n},)")
-    if not np.all(np.isfinite(arr)):
-        raise ValueError(f"{name} must contain only finite values")
-    if np.any(arr < -1e-15):
-        raise ValueError(f"{name} must be nonnegative")
-    if not np.isclose(float(arr.sum()), 1.0, atol=1e-10):
-        raise ValueError(f"{name} must sum to 1")
-    return arr
+    return validate_probability_vector(vec, n, name)
 
 
 def _row_entropies(rows: np.ndarray) -> np.ndarray:
@@ -92,14 +84,13 @@ def _pz_rows(P: np.ndarray, pi_map: np.ndarray, tau: int) -> tuple[np.ndarray, n
 def _stationary_pi(P: np.ndarray, pi_stationary: np.ndarray | None) -> np.ndarray:
     """Get stationary micro distribution from argument or by computation."""
     kernel = _validate_kernel(P)
-    n = kernel.shape[0]
     if pi_stationary is None:
         return stationary_dist(kernel)
-    return _validate_prob_vector(pi_stationary, n, "pi_stationary")
+    return validate_stationary(kernel, pi_stationary)
 
 
 def step_entropy(macroP: np.ndarray, macro_stationary: np.ndarray | None = None) -> float:
-    """Compute stationary-weighted row entropy of a macro transition kernel."""
+    """Average row entropy under supplied weights (stationary by default)."""
     macro_kernel_arr = _validate_kernel(macroP)
     k = macro_kernel_arr.shape[0]
 
@@ -157,10 +148,9 @@ def macro_cond_entropy(
     n = pi.shape[0]
     cond = np.zeros((k, n), dtype=float)
     counts = np.bincount(pi_int, minlength=k)
-    tiny = 1e-15
     for x in range(k):
         mask = pi_int == x
-        if pi_macro[x] > tiny:
+        if pi_macro[x] > 0.0:
             cond[x, mask] = pi[mask] / pi_macro[x]
         else:
             cond[x, mask] = 1.0 / counts[x]
@@ -179,29 +169,25 @@ def closure_deficit(
     pi_macro = pushforward_dist(pi, pi_int, k)
 
     n = pi.shape[0]
-    cond = np.zeros((k, n), dtype=float)
-    counts = np.bincount(pi_int, minlength=k)
-    tiny = 1e-15
-    for x in range(k):
-        mask = pi_int == x
-        if pi_macro[x] > tiny:
-            cond[x, mask] = pi[mask] / pi_macro[x]
-        else:
-            cond[x, mask] = 1.0 / counts[x]
-
-    px = cond @ pz
-    qz = px[pi_int]
-
+    # Evaluate the barycenter in log space. A positive-weight row is absolutely
+    # continuous with respect to its mixture even when a product underflows.
+    with np.errstate(divide="ignore"):
+        log_pz = np.log(pz)
+    log_macro = np.full((k, k), -np.inf)
+    for y in range(k):
+        occupied = (pi_int == y) & (pi > 0.0)
+        if np.any(occupied):
+            log_weights = np.log(pi[occupied]) - np.log(pi_macro[y])
+            log_macro[y] = np.logaddexp.reduce(log_weights[:, None] + log_pz[occupied], axis=0)
     kl = np.zeros(n, dtype=float)
     for z in range(n):
+        # Conditional laws at null microstates are irrelevant. Avoid 0 * inf.
+        if pi[z] == 0.0:
+            continue
         p = pz[z]
-        q = qz[z]
         # Mask p == 0 terms so only support of p contributes to KL(p || q).
         mask = p > 0.0
-        if np.any(q[mask] <= 0.0):
-            kl[z] = np.inf
-        else:
-            kl[z] = np.sum(p[mask] * (np.log(p[mask]) - np.log(q[mask])))
+        kl[z] = np.sum(p[mask] * (log_pz[z, mask] - log_macro[pi_int[z], mask]))
     return float(np.sum(pi * kl))
 
 
@@ -213,3 +199,42 @@ def decomposition_check(
     hyx = intrinsic_term(P, pi_map, tau, pi_stationary=pi_stationary)
     cd = closure_deficit(P, pi_map, tau, pi_stationary=pi_stationary)
     return float(hyy - hyx - cd)
+
+
+def packaged_history_entropy(
+    P: np.ndarray,
+    pi_map: np.ndarray,
+    tau: int,
+    order: int,
+    pi_stationary: np.ndarray | None = None,
+) -> float:
+    """Compute population H(Y_next | the last ``order`` staged packages).
+
+    This enumerates all packaged histories, retaining the unnormalized hidden
+    state law for each history. It is exponential in ``order``; no estimated
+    transition predictor or empirical minimum is used. Order zero is H(Y).
+    """
+    if isinstance(order, bool) or not isinstance(order, (int, np.integer)):
+        raise TypeError("order must be an integer")
+    if order < 0:
+        raise ValueError("order must be >= 0")
+    futures, labels, k = _pz_rows(P, pi_map, tau)
+    kernel = _validate_kernel(P)
+    pi = _stationary_pi(kernel, pi_stationary)
+    if order == 0:
+        return float(_row_entropies(pushforward_dist(pi, labels, k)[None, :])[0])
+
+    staged = kernel_power(kernel, tau)
+    histories = pi[None, :]
+    for depth in range(order):
+        if depth > 0:
+            histories = histories @ staged
+        children = []
+        for y in range(k):
+            child = histories * (labels == y)
+            children.append(child[child.sum(axis=1) > 0.0])
+        histories = np.concatenate(children, axis=0)
+
+    masses = histories.sum(axis=1)
+    next_laws = (histories / masses[:, None]) @ futures
+    return float(np.dot(masses, _row_entropies(next_laws)))

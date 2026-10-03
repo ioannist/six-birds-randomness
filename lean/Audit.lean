@@ -1,0 +1,13 @@
+import RandomnessLedgerLean
+
+-- Kernel-reported transitive axioms for every exported mathematical declaration.
+#print axioms RandomnessLedgerLean.probability_toReal_klDiv_eq_integral_llr
+#print axioms RandomnessLedgerLean.probability_integral_llr_nonneg
+#print axioms RandomnessLedgerLean.probability_klDiv_eq_zero_iff
+#print axioms RandomnessLedgerLean.probability_klDiv_eq_ofReal_integral_llr
+#print axioms RandomnessLedgerLean.probability_integral_llr_eq_zero_iff
+#print axioms RandomnessLedgerLean.finite_probability_llr_integrable
+#print axioms RandomnessLedgerLean.finite_probability_klDiv_eq_sum_llr
+#print axioms RandomnessLedgerLean.probability_toReal_klDiv_eq_zero_iff
+#print axioms RandomnessLedgerLean.weighted_probability_klDiv_eq_zero_iff
+#print axioms RandomnessLedgerLean.finite_weighted_probability_klDiv_eq_zero_iff

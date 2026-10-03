@@ -34,6 +34,13 @@ def _validate_eps(eps: float) -> float:
     return eps_val
 
 
+def _validate_fraction(name: str, value: float) -> float:
+    result = float(value)
+    if not np.isfinite(result) or not 0.0 <= result <= 1.0:
+        raise ValueError(f"{name} must be finite and in [0, 1]")
+    return result
+
+
 def _build_partition(fiber_sizes: list[int]) -> tuple[np.ndarray, list[np.ndarray]]:
     """Build contiguous partition labels and per-fiber index arrays."""
     sizes = _validate_positive_sizes("fiber_sizes", fiber_sizes)
@@ -104,7 +111,7 @@ def gen_exactly_lumpable(
         "fiber_sizes": sizes,
         "n_micro": n_micro,
         "aperiodic_eps": eps,
-        "K": K,
+        "K": (1.0 - eps) * K + eps * np.asarray(sizes)[None, :] / n_micro,
     }
     return P, pi_map, meta
 
@@ -128,7 +135,7 @@ def gen_perturbed_lumpable(
         raise ValueError("len(fiber_sizes) must equal n_macro")
 
     eps = _validate_eps(aperiodic_eps)
-    alpha = float(np.clip(heterogeneity_alpha, 0.0, 1.0))
+    alpha = _validate_fraction("heterogeneity_alpha", heterogeneity_alpha)
     rng = np.random.default_rng(_validate_seed(seed))
     pi_map, fibers = _build_partition(sizes)
     n_micro = len(pi_map)
@@ -173,7 +180,6 @@ def gen_metastable(
     rng = np.random.default_rng(_validate_seed(seed))
     pi_map, blocks = _build_partition(sizes)
     n_micro = len(pi_map)
-    n_blocks = len(blocks)
 
     within_kernels = [
         rng.dirichlet(np.ones(len(block_inds)), size=len(block_inds))
@@ -229,8 +235,8 @@ def gen_hidden_types(
     if len(sizes) != n_macro_int:
         raise ValueError("len(fiber_sizes) must equal n_macro")
 
-    split = float(np.clip(type_split, 0.0, 1.0))
-    s = float(np.clip(strength, 0.0, 1.0))
+    split = _validate_fraction("type_split", type_split)
+    s = _validate_fraction("strength", strength)
     rng = np.random.default_rng(_validate_seed(seed))
     pi_map, fibers = _build_partition(sizes)
     n_micro = len(pi_map)
